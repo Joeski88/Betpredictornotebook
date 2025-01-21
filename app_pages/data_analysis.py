@@ -62,10 +62,13 @@ def app():
     # Load dataset
     file_path = "./jupyter_notebooks/data/full_dataset.csv"
     data = pd.read_csv(file_path)
+    df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
     
     # Debug: Print dataset info
     print(data.info())
     print(data.head())
+
+    st.write(df.describe())
 
     # Split data into features and target
     X = data.drop('HomeTeam', axis=1)  # Replace 'Target' with your target column
