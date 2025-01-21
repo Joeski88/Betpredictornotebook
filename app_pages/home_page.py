@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 # from sklearn.model_selection import train_test_split
 # from sklearn.ensemble import RandomForestClassifier
 # from sklearn.metrics import accuracy_score, classification_report
@@ -46,7 +47,8 @@ def app():
 
     st.header("Data Set Summary")
     st.write("The link for the dataset key is located beneath.")
-    st.page_link("https://www.football-data.co.uk/notes.txt", label="Dataset Key", icon="⚽")
+    st.page_link("https://www.football-data.co.uk/notes.txt", 
+                label="Dataset Key", icon="⚽")
     st.write(
         """
         The data set is compiled from football statistics collected from over 
@@ -63,7 +65,7 @@ def app():
     )
     
     # Load the dataset
-    file_path = "./data/full_dataset.csv"  # Replace with your dataset path
+    file_path = "./jupyter_notebooks/data/full_dataset.csv"  # Replace with your dataset path
     data = pd.read_csv(file_path)
 
     # Data Preprocessing
