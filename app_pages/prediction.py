@@ -7,6 +7,24 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelEncoder
+#from myutils import plot_metrics
+
+# Load the dataset
+file_path = "./jupyter_notebooks/data/full_dataset.csv"  # Replace with your dataset path
+data = pd.read_csv(file_path)
+
+metrics = ['FTHG', 'FTAG', 'HS', 'HST', 'HC', 'AS', 'AST', 'AC']
+mapping = {
+    'FTHG': 'Full time Home Goals', 
+    'FTAG': 'Full time Away Goals', 
+    'HS': 'Home Shots', 
+    'HST': 'Home Shots on Target', 
+    'HC': 'Home Corners', 
+    'AS': 'Away Shots', 
+    'AST': 'Away Shots on Target',
+    'AC': 'Away Corners'
+}
+
 
 def app():
     st.title("Prediction Hub")
@@ -20,7 +38,7 @@ def app():
     
     Teams = ("Arsenal", "Aston Villa", "Bournemouth","Brentford","Brighton",
     "Crystal Palace","Chelsea","Everton","Fulham","Ipswich",
-    "Nottingham Forest","Manchester City","Manchester United","Liverpool",
+    "Nottingham Forest","Man City","Man United","Liverpool",
     "Tottenham","Newcastle","Southampton","Wolves","West Ham","Leicester",)
 
     # Loop to create 10 dropdowns for team selections in matches
@@ -40,7 +58,8 @@ def app():
             Teams,
             key=f"team2_{i}"  # Unique key for each selectbox
         )
-        
+
+        #myutils.plot_metrics(df, team1, team2, metrics, mapping)
         # Optionally, show the selected teams for the match
         st.write(f"Match {i} teams: {team1} vs {team2}")
         st.write('---')  # Separator for readability

@@ -3,9 +3,67 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import seaborn as sb
+
 # from sklearn.model_selection import train_test_split
 # from sklearn.ensemble import RandomForestClassifier
 # from sklearn.metrics import accuracy_score, classification_report
+
+features = [
+    'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
+    'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 
+    'AvgH', 'AvgD', 'AvgA',
+    'GoalDifference', 'MarketConsensus',
+    'FTR'
+]
+def calculateOverallPerformance(data):
+    # Calculate total matches and wins for each team (Home = 1, Away=-1
+    home_wins = data[data['FTR'] == 'H'].groupby('HomeTeam').size()  # Home wins
+    away_wins = data[data['FTR'] == 'A'].groupby('AwayTeam').size()  # Away wins
+    
+    home_matches = data.groupby('HomeTeam').size()  # Total home matches
+    away_matches = data.groupby('AwayTeam').size()  # Total away matches
+    
+    # Total matches and wins
+    total_wins = home_wins.add(away_wins, fill_value=0)
+    total_matches = home_matches.add(away_matches, fill_value=0)
+    
+    # Calculate win percentage
+    win_percentage = (total_wins / total_matches) * 100
+    
+    # Sort win percentage in descending order
+    win_percentage = win_percentage.sort_values(ascending=False)
+    
+    # Bar plot is better than a scatter plot for this:
+    fig = plt.figure(figsize=(12, 6))
+    win_percentage.plot(kind='bar', color='skyblue', alpha=0.8, edgecolor='black')
+    plt.title('Team Win Percentage')
+    plt.xlabel('Team Name')
+    plt.ylabel('Win Percentage (%)')
+    plt.xticks(rotation=90, fontsize=8)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    st.pyplot(fig)
+
+def feature_engineering(data):
+    data['GoalDifference'] = data['FTHG'] - data['FTAG']
+    data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
+
+    # Map team names to numeric IDs
+    team_mapping = {team: idx for idx, team in enumerate(data['HomeTeam'].unique())}
+    data['HomeTeam'] = data['HomeTeam'].map(team_mapping)
+    data['AwayTeam'] = data['AwayTeam'].map(team_mapping)
+
+    # Ensure 'FTR' is encoded as numeric
+    ftr_mapping = {'H': 0, 'D': 1, 'A': 2}
+    data['FTR'] = data['FTR'].map(ftr_mapping)
+
+    # Verify data is numeric
+    for column in ['HomeTeam', 'AwayTeam', 'FTR']:
+        if not np.issubdtype(data[column].dtype, np.number):
+            raise ValueError(f"Column '{column}' is not numeric after encoding.")
+
+    return data, team_mapping, ftr_mapping
 
 def app():
     st.title("Football betting notebook")
@@ -73,16 +131,15 @@ def app():
     data.fillna(method='ffill', inplace=True)
     
     st.write(data.head())
-
-    # Define a function for performing EDA
-    print("Dataset Head:\n", data.head())
-    print("Dataset Info:\n")
-    data.info()
-    print("Summary Statistics:\n", data.describe())
-
-    # Plot histograms for numeric columns
-    numeric_columns = data.select_dtypes(include=['float64', 'int64']).columns
-    data[numeric_columns].hist(figsize=(15, 10), bins=20, color='skyblue', edgecolor='black')
-    plt.suptitle('Histograms of Numeric Features', fontsize=16)
-    plt.tight_layout()
-    st.pyplot(plt.gcf())
+    
+    correlation_matrix = data.corr(numeric_only=True)
+    corr_plot = sb.heatmap(correlation_matrix, cmap="YlGnBu", annot=False)
+    fig = corr_plot.get_figure()
+    st.pyplot(fig)
+    plt.clf() # To clear the figure
+    data_feat, team_mapping, ftr_mapping = feature_engineering(data)
+    #calculateOverallPerformance(data)
+    corr_matrix_feats = data_feat[features].corr()
+    corr_plot2 = sb.heatmap(corr_matrix_feats, cmap="YlGnBu", annot=False)
+    fig = corr_plot2.get_figure()
+    st.pyplot(fig)

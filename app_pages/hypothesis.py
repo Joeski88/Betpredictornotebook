@@ -26,3 +26,11 @@ def app():
     interactive, user-friendly interface for analyzing predictions and 
     visualizing match data.
     """)
+
+
+    # Plot histograms for numeric columns
+    numeric_columns = data.select_dtypes(include=['float64', 'int64']).columns
+    data[numeric_columns].hist(figsize=(15, 10), bins=20, color='skyblue', edgecolor='black')
+    plt.suptitle('Histograms of Numeric Features', fontsize=16)
+    plt.tight_layout()
+    st.pyplot(plt.gcf())
