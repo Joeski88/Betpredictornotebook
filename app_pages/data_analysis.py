@@ -2,11 +2,40 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sb
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelEncoder
+import myutils
+
+    # Feature selection
+features = [
+        'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
+        'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 
+        'AvgH', 'AvgD', 'AvgA'
+]
+
+def feature_engineering(data):
+    data['GoalDifference'] = data['FTHG'] - data['FTAG']
+    data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
+    # Set which features to focus on
+
+    # Map team names to numeric IDs
+    team_mapping = {team: idx for idx, team in enumerate(data['HomeTeam'].unique())}
+    data['HomeTeam'] = data['HomeTeam'].map(team_mapping)
+    data['AwayTeam'] = data['AwayTeam'].map(team_mapping)
+
+    # Ensure 'FTR' is encoded as numeric
+    ftr_mapping = {'H': 0, 'D': 1, 'A': 2}
+    data['FTR'] = data['FTR'].map(ftr_mapping)
+
+    # Verify data is numeric
+    for column in ['HomeTeam', 'AwayTeam', 'FTR']:
+        if not np.issubdtype(data[column].dtype, np.number):
+            raise ValueError(f"Column '{column}' is not numeric after encoding.")
+
+    return data, team_mapping, ftr_mapping
 
 def app():
     st.title("Data Analysis")
@@ -63,24 +92,65 @@ def app():
     file_path = "./jupyter_notebooks/data/full_dataset.csv"
     data = pd.read_csv(file_path)
     df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
-    
-    # Debug: Print dataset info
-    print(data.info())
-    print(data.head())
 
     st.write(df.describe())
 
+    st.header("Correlation Matrix")
+
+    st.write("""
+    A correlation matrix is a table that shows the pairwise correlation 
+    coefficients between variables in a dataset. Below there are 2 matrix, 1 
+    containing the whole set of metrics provided within the dataset, and the 
+    second using a selected amount of essential data metrics.
+    """)
+
+    st.subheader("Correlation Matrix 1")
+
+    st.write("""
+    This is the correlation matrix of the untouched dataset. As you can see it 
+    provides information that can be used, such as, the most correlated data is 
+    between the various betting data companies. This information isnt really 
+    useful for the app's intentions. So I have dropped the unimportant data and 
+    created a new matrix, featuring only data being used in the project.
+    """)
+    correlation_matrix = data.corr(numeric_only=True)
+    corr_plot = sb.heatmap(correlation_matrix, cmap="YlGnBu", annot=False)
+    fig = corr_plot.get_figure()
+    st.pyplot(fig)
+    plt.clf() # To clear the figure
+    data_feat, team_mapping, ftr_mapping = feature_engineering(data)
+    #calculateOverallPerformance(data)
+
+    st.subheader("Correlation Matrix 2")
+
+    st.write("""
+    The second correlation matrix, as you can see is alot more readable. 
+    There are several points of interest that are highly correlaated aswell as 
+    some with low correlation. For example, home & away shots on target and 
+    home & away goals are highly correlated in a positive way, indicating and obvious trend in 
+    having more shots on target means a higher potential to score more goals.
+    In comparison, yellow cards and red cards, are not really correlated 
+    as most of the points sit at close to 0 which means they dont tend to 
+    affect each other in terms of outcome.
+    """)
+    print(data_feat.head())  # Check if data_feat is a valid DataFrame
+
+    corr_matrix_feats = data_feat[features].corr()
+    corr_plot2 = sb.heatmap(corr_matrix_feats, cmap="YlGnBu", annot=False)
+    fig = corr_plot2.get_figure()
+    st.pyplot(fig)
+
     # Split data into features and target
-    X = data.drop('HomeTeam', axis=1)  # Replace 'Target' with your target column
-    y = data['id']
+    X = data.drop('HomeTeam', axis=1)
+    y = data['AwayTeam']
 
     # Split into train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Label encode non-numeric columns
     label_encoder = LabelEncoder()
-    X_train['Team'] = label_encoder.fit_transform(X_train['Team'])  # Replace 'Team' with your column name
-    X_test['Team'] = label_encoder.transform(X_test['Team'])
+    X_train['HomeTeam'] = label_encoder.fit_transform(X_train['HomeTeam'])
+    X_test['AwayTeam'] = label_encoder.transform(X_test['AwayTeam'])
 
     # Initialize and train the model
     model = RandomForestClassifier(random_state=42)
@@ -90,29 +160,11 @@ def app():
     predictions = model.predict(X_test)
     print(predictions)
 
-    # Feature selection
-    features = [
-        'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
-        'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 
-        'AvgH', 'AvgD', 'AvgA'
-]
-    # # Train/test split and model training (unchanged)
-    # X = data[features]
-    # y = data['FTR']
-
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-
-    # # Train Model
-    # model = RandomForestClassifier(n_estimators=100, random_state=42)
-    # model.fit(X_train, y_train)
-
-
     # Feature engineering
     data['GoalDifference'] = data['FTHG'] - data['FTAG']
     data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
     features.extend(['GoalDifference', 'MarketConsensus'])
     
-
     # Get feature importances from the model
     feature_importances = pd.DataFrame({
         'Feature': features,
@@ -153,3 +205,4 @@ def app():
     else:
         plt.title("Correlation Matrix")
         plt.show()
+

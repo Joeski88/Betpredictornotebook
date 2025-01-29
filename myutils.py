@@ -48,7 +48,7 @@ def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC'
     ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
     
     plt.tight_layout()
-    st.pyplot(fig)
+    plt.show()
 
 if __name__ == "__main__":
     print("untilsimported")

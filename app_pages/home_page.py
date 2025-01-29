@@ -4,11 +4,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import seaborn as sb
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
 
-# from sklearn.model_selection import train_test_split
-# from sklearn.ensemble import RandomForestClassifier
-# from sklearn.metrics import accuracy_score, classification_report
 
+    # Load the dataset
+file_path = "./jupyter_notebooks/data/full_dataset.csv"  # Replace with your dataset path
+data = pd.read_csv(file_path)
+
+# Set which features to focus on
 features = [
     'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
     'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 
@@ -16,6 +21,7 @@ features = [
     'GoalDifference', 'MarketConsensus',
     'FTR'
 ]
+# Overall win percentage function
 def calculateOverallPerformance(data):
     # Calculate total matches and wins for each team (Home = 1, Away=-1
     home_wins = data[data['FTR'] == 'H'].groupby('HomeTeam').size()  # Home wins
@@ -34,7 +40,7 @@ def calculateOverallPerformance(data):
     # Sort win percentage in descending order
     win_percentage = win_percentage.sort_values(ascending=False)
     
-    # Bar plot is better than a scatter plot for this:
+    # Bar plot code
     fig = plt.figure(figsize=(12, 6))
     win_percentage.plot(kind='bar', color='skyblue', alpha=0.8, edgecolor='black')
     plt.title('Team Win Percentage')
@@ -43,8 +49,8 @@ def calculateOverallPerformance(data):
     plt.xticks(rotation=90, fontsize=8)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
-    st.pyplot(fig)
-
+    plt.show()
+    
 def feature_engineering(data):
     data['GoalDifference'] = data['FTHG'] - data['FTAG']
     data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
@@ -121,25 +127,18 @@ def app():
         see the abbreviations used broken down and explained in the above link. 
         """
     )
-    
-    # Load the dataset
-    file_path = "./jupyter_notebooks/data/full_dataset.csv"  # Replace with your dataset path
-    data = pd.read_csv(file_path)
-
     # Data Preprocessing
     # Handle missing values
-    data.fillna(method='ffill', inplace=True)
+    data.ffill(inplace=True)
     
     st.write(data.head())
-    
-    correlation_matrix = data.corr(numeric_only=True)
-    corr_plot = sb.heatmap(correlation_matrix, cmap="YlGnBu", annot=False)
-    fig = corr_plot.get_figure()
-    st.pyplot(fig)
-    plt.clf() # To clear the figure
-    data_feat, team_mapping, ftr_mapping = feature_engineering(data)
-    #calculateOverallPerformance(data)
-    corr_matrix_feats = data_feat[features].corr()
-    corr_plot2 = sb.heatmap(corr_matrix_feats, cmap="YlGnBu", annot=False)
-    fig = corr_plot2.get_figure()
-    st.pyplot(fig)
+
+    st.header("Overall Data Summary Visualisations")
+
+    st.subheader("Overall Win Percentage Bar Plot")
+
+    st.subheader("Team Comparison Radar Plot")
+
+    st.subheader("Individual Team Comparison Radar Plot, Year By Year")
+
+    st.subheader("Outliers")
