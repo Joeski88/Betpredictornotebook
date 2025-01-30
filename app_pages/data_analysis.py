@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelEncoder
+
 import myutils
 
     # Feature selection
@@ -16,26 +19,13 @@ features = [
         'AvgH', 'AvgD', 'AvgA'
 ]
 
-def feature_engineering(data):
-    data['GoalDifference'] = data['FTHG'] - data['FTAG']
-    data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
-    # Set which features to focus on
-
-    # Map team names to numeric IDs
-    team_mapping = {team: idx for idx, team in enumerate(data['HomeTeam'].unique())}
-    data['HomeTeam'] = data['HomeTeam'].map(team_mapping)
-    data['AwayTeam'] = data['AwayTeam'].map(team_mapping)
-
-    # Ensure 'FTR' is encoded as numeric
-    ftr_mapping = {'H': 0, 'D': 1, 'A': 2}
-    data['FTR'] = data['FTR'].map(ftr_mapping)
-
-    # Verify data is numeric
-    for column in ['HomeTeam', 'AwayTeam', 'FTR']:
-        if not np.issubdtype(data[column].dtype, np.number):
-            raise ValueError(f"Column '{column}' is not numeric after encoding.")
-
-    return data, team_mapping, ftr_mapping
+# Load dataset
+file_path = "./jupyter_notebooks/data/full_dataset.csv"
+data = pd.read_csv(file_path)
+df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
+# notebook_dir = os.path.dirname(os.path.abspath("__file__"))  # Simulates the notebook's directory
+# print(notebook_dir)
+# data =  pd.read_csv(notebook_dir + "./jupyter_notebooks/data/full_datasetv2.csv")
 
 def app():
     st.title("Data Analysis")
@@ -87,11 +77,6 @@ def app():
         which therefore makes it  hard as i want to use as much historical data
         as possible.
         """)
-    
-    # Load dataset
-    file_path = "./jupyter_notebooks/data/full_dataset.csv"
-    data = pd.read_csv(file_path)
-    df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
 
     st.write(df.describe())
 
@@ -118,7 +103,7 @@ def app():
     fig = corr_plot.get_figure()
     st.pyplot(fig)
     plt.clf() # To clear the figure
-    data_feat, team_mapping, ftr_mapping = feature_engineering(data)
+    data_feat, team_mapping, ftr_mapping = myutils.feature_engineering(data)
     #calculateOverallPerformance(data)
 
     st.subheader("Correlation Matrix 2")
@@ -140,69 +125,69 @@ def app():
     fig = corr_plot2.get_figure()
     st.pyplot(fig)
 
-    # Split data into features and target
-    X = data.drop('HomeTeam', axis=1)
-    y = data['AwayTeam']
+    # # Split data into features and target
+    # X = data.drop('HomeTeam', axis=1)
+    # y = data['AwayTeam']
 
-    # Split into train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # # Split into train and test sets
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Label encode non-numeric columns
-    label_encoder = LabelEncoder()
-    X_train['HomeTeam'] = label_encoder.fit_transform(X_train['HomeTeam'])
-    X_test['AwayTeam'] = label_encoder.transform(X_test['AwayTeam'])
+    # # Label encode non-numeric columns
+    # label_encoder = LabelEncoder()
+    # X_train['HomeTeam'] = label_encoder.fit_transform(X_train['HomeTeam'])
+    # X_test['AwayTeam'] = label_encoder.transform(X_test['AwayTeam'])
 
-    # Initialize and train the model
-    model = RandomForestClassifier(random_state=42)
-    model.fit(X_train, y_train)
+    # # Initialize and train the model
+    # model = RandomForestClassifier(random_state=42)
+    # model.fit(X_train, y_train)
 
-    # Predict and evaluate
-    predictions = model.predict(X_test)
-    print(predictions)
+    # # Predict and evaluate
+    # predictions = model.predict(X_test)
+    # print(predictions)
 
     # Feature engineering
-    data['GoalDifference'] = data['FTHG'] - data['FTAG']
-    data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
-    features.extend(['GoalDifference', 'MarketConsensus'])
+    # data['GoalDifference'] = data['FTHG'] - data['FTAG']
+    # data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
+    # features.extend(['GoalDifference', 'MarketConsensus'])
     
-    # Get feature importances from the model
-    feature_importances = pd.DataFrame({
-        'Feature': features,
-        'Importance': model.feature_importances_
-    }).sort_values(by='Importance', ascending=False)
+    # # Get feature importances from the model
+    # feature_importances = pd.DataFrame({
+    #     'Feature': features,
+    #     'Importance': model.feature_importances_
+    # }).sort_values(by='Importance', ascending=False)
 
-    # Plot the feature importances
-    plt.figure(figsize=(10, 6))
-    plt.barh(feature_importances['Feature'], feature_importances['Importance'])
-    plt.gca().invert_yaxis()  # Invert y-axis to show most important feature at the top
-    plt.title('Feature Importances')
-    plt.xlabel('Importance')
-    plt.ylabel('Feature')
-    plt.show()
+    # # Plot the feature importances
+    # plt.figure(figsize=(10, 6))
+    # plt.barh(feature_importances['Feature'], feature_importances['Importance'])
+    # plt.gca().invert_yaxis()  # Invert y-axis to show most important feature at the top
+    # plt.title('Feature Importances')
+    # plt.xlabel('Importance')
+    # plt.ylabel('Feature')
+    # plt.show()
 
-    # Select only numeric columns
-    numerical_data = data.select_dtypes(include=['number'])
+    # # Select only numeric columns
+    # numerical_data = data.select_dtypes(include=['number'])
 
-    # Debug: Check if numerical_data is empty
-    if numerical_data.empty:
-        print("No numeric columns found in the dataset.")
-    else:
-        print(numerical_data.info())
+    # # Debug: Check if numerical_data is empty
+    # if numerical_data.empty:
+    #     print("No numeric columns found in the dataset.")
+    # else:
+    #     print(numerical_data.info())
 
-    # Compute correlation matrix
-    correlation_matrix = numerical_data.corr()
-    corr_matrix = cleaned_data.corr()
-    plt.figure(figsize=(15, 10))
-    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm")
-    st.pyplot(plt.gcf())
+    # # Compute correlation matrix
+    # correlation_matrix = numerical_data.corr()
+    # corr_matrix = cleaned_data.corr()
+    # plt.figure(figsize=(15, 10))
+    # sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm")
+    # st.pyplot(plt.gcf())
 
-    # Debug: Check if correlation_matrix is empty
-    print("Correlation matrix:")
-    print(correlation_matrix)
+    # # Debug: Check if correlation_matrix is empty
+    # print("Correlation matrix:")
+    # print(correlation_matrix)
 
-    if correlation_matrix.empty:
-        print("Correlation matrix is empty. Ensure dataset has multiple numeric columns.")
-    else:
-        plt.title("Correlation Matrix")
-        plt.show()
+    # if correlation_matrix.empty:
+    #     print("Correlation matrix is empty. Ensure dataset has multiple numeric columns.")
+    # else:
+    #     plt.title("Correlation Matrix")
+    #     plt.show()
 

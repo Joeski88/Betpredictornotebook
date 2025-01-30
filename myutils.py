@@ -4,6 +4,36 @@ import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+# Set which features to focus on
+features = [
+    'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
+    'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 
+    'AvgH', 'AvgD', 'AvgA',
+    'GoalDifference', 'MarketConsensus',
+    'FTR'
+]
+
+def feature_engineering(data):
+    data['GoalDifference'] = data['FTHG'] - data['FTAG']
+    data['MarketConsensus'] = (data['AvgH'] + data['AvgD'] + data['AvgA']) / 3
+    # Set which features to focus on
+
+    # Map team names to numeric IDs
+    team_mapping = {team: idx for idx, team in enumerate(data['HomeTeam'].unique())}
+    data['HomeTeam'] = data['HomeTeam'].map(team_mapping)
+    data['AwayTeam'] = data['AwayTeam'].map(team_mapping)
+
+    # Ensure 'FTR' is encoded as numeric
+    ftr_mapping = {'H': 0, 'D': 1, 'A': 2}
+    data['FTR'] = data['FTR'].map(ftr_mapping)
+
+    # Verify data is numeric
+    for column in ['HomeTeam', 'AwayTeam', 'FTR']:
+        if not np.issubdtype(data[column].dtype, np.number):
+            raise ValueError(f"Column '{column}' is not numeric after encoding.")
+
+    return data, team_mapping, ftr_mapping
+
 def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC', 'AS', 'AST', 'AC'], mapping={}):
     # Example dataset (replace with your actual dataset)
     cols = ['HomeTeam']
@@ -48,7 +78,34 @@ def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC'
     ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
     
     plt.tight_layout()
-    plt.show()
+    return fig
+
+def calculateOverallPerformance(data):
+    temp = data.copy()
+        # Calculate wins for home and away
+    home_wins = temp[temp['FTR'] == 'H'].groupby('HomeTeam').size()
+    away_wins = temp[temp['FTR'] == 'A'].groupby('AwayTeam').size()
+
+    # Calculate total matches for home and away
+    home_matches = temp.groupby('HomeTeam').size()
+    away_matches = temp.groupby('AwayTeam').size()
+
+    # Aggregate wins and matches
+    total_wins = home_wins.add(away_wins, fill_value=0)           # sum of home wins + away wins
+    total_matches = home_matches.add(away_matches, fill_value=0)  # sum of home matches + away matches
+
+    # Calculate win percentage
+    win_percentage = (total_wins / total_matches) * 100
+
+    # Sort teams by descending win percentage
+    win_percentage = win_percentage.sort_values(ascending=False)
+
+    win_percentage.plot(kind='bar', color='skyblue', alpha=0.8, edgecolor='black')
+
+    temp['HomeTeamWinPct'] = temp['HomeTeam'].map(win_percentage)
+    temp['AwayTeamWinPct'] = temp['AwayTeam'].map(win_percentage)
+
+    return temp, win_percentage
 
 if __name__ == "__main__":
     print("untilsimported")

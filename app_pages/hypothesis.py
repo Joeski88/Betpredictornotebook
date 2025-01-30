@@ -12,13 +12,11 @@ import myutils
 
 # Load dataset
 file_path = "./jupyter_notebooks/data/full_dataset.csv"
-data = pd.read_csv(file_path)
 df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
 
 def app():
     st.title("Hypothesis")
-
-    # Hypothesis Section
+# Hypothesis Section
     st.header("Hypothesis")
     st.markdown("""
     We hypothesize that by leveraging historical football match data, including:
@@ -69,7 +67,7 @@ def app():
         fig = px.parallel_coordinates(
             df_normalized,
             dimensions=existing_columns,
-            color=df['FTR'],  # Ensure this column exists
+            color=df['FTR'],
             labels={col: col.replace('_', ' ') for col in existing_columns},
             title="Parallel Coordinates Plot for Match Stats"
         )
@@ -93,7 +91,7 @@ def app():
     # Encode categorical columns
     categorical_cols = ['HomeTeam', 'AwayTeam', 'FTR', 'HTR']
     df[categorical_cols] = df[categorical_cols].apply(lambda x: pd.factorize(x)[0])
-
+    print(df[categorical_cols])
     # Drop unnecessary columns
     df.drop(['Date', 'Time', 'Referee'], axis=1, inplace=True, errors='ignore')
 
