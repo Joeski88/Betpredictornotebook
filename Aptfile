@@ -1,0 +1,6 @@
+g++
+gcc
+gfortran
+libopenblas-dev
+liblapack-dev
+libatlas-base-dev
