@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
@@ -76,8 +77,8 @@ def app():
 
     options = st.multiselect(
     "What metrics would you like to inlcude?",
-    ["Home Goals", "Away goals", "Total match yellow cards", "Total match red cards",
-    "Total match corners", "home corners", "away corners", "home SOT", "away SOT"],
+    ["Home Goals", "Away Goals", "Total Match Yellow Cards", "Total Match Red Cards",
+    "Total match corners", "Home Corners", "Away Corners", "Home SOT", "Away SOT"],
     )
 
     st.write("You selected:", options)

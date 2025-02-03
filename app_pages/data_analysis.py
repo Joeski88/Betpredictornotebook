@@ -1,10 +1,10 @@
 import os
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sb
+
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
@@ -23,9 +23,6 @@ features = [
 file_path = "./jupyter_notebooks/data/full_dataset.csv"
 data = pd.read_csv(file_path)
 df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
-# notebook_dir = os.path.dirname(os.path.abspath("__file__"))  # Simulates the notebook's directory
-# print(notebook_dir)
-# data =  pd.read_csv(notebook_dir + "./jupyter_notebooks/data/full_datasetv2.csv")
 
 def app():
     st.title("Data Analysis")
@@ -118,12 +115,80 @@ def app():
     as most of the points sit at close to 0 which means they dont tend to 
     affect each other in terms of outcome.
     """)
-    print(data_feat.head())  # Check if data_feat is a valid DataFrame
+    #print(data_feat.head())  # Check if data_feat is a valid DataFrame
 
     corr_matrix_feats = data_feat[features].corr()
     corr_plot2 = sb.heatmap(corr_matrix_feats, cmap="YlGnBu", annot=False)
     fig = corr_plot2.get_figure()
     st.pyplot(fig)
+    
+    st.header("Overall Data Summary Visualisations")
+
+    st.subheader("Team Comparison Radar Plot")
+
+    st.subheader("Individual Team Comparison Radar Plot, Year By Year")
+
+    st.subheader("Outliers")
+
+    data_feat, team_mapping, ftr_mapping = myutils.feature_engineering(data)
+    
+    st.write(
+        """
+        ## Feature selection
+        Correlation of potential features to train the model, with features versus target variable 'FTR' and values (Home, Away, Draw).
+        """)
+    corr_matrix_feats = data_feat[myutils.features].corr()
+    corr_plot2 = sb.heatmap(corr_matrix_feats, cmap="YlGnBu", annot=False)
+    fig = corr_plot2.get_figure()
+    st.pyplot(fig)
+
+
+    # Parallel plot:
+    features_to_analyse = [
+        'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
+        'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 
+        'AvgH', 'AvgD', 'AvgA'
+    ]
+
+    teams_to_plot = ['Man United', 'Arsenal', 'Chelsea'] 
+
+    filtered_data = myutils.getParallelPlot(data, features_to_analyse, teams_to_plot)
+    print(data)
+    # For data plotting
+    x = np.arange(len(features_to_analyse))  # X-axis positions for features
+
+    # Plot parallel oordinates with Bezier curves
+    fig, ax = plt.subplots(figsize=(12, 6)) 
+    print(filtered_data)
+    for _, row in filtered_data.iterrows():
+        team = row['HomeTeam']
+        
+        y = row[features_to_analyse].values  # Y-axis values for the features
+        print(team, y)
+
+        # Create Bezier curve (smooth line)
+        x_smooth = np.linspace(x.min(), x.max(), 300)  # Smooth x-axis
+        spline = make_interp_spline(x, y, k=3)  # Bezier spline (k=3 for cubic)
+        y_smooth = spline(x_smooth)
+
+        # Plot the curve
+        plt.plot(x_smooth, y_smooth, alpha=0.7, label=team)
+
+        # Add vertical lines for each metric
+        for i in range(len(features_to_analyse)):
+            plt.axvline(x=i, color='gray', linestyle='--', linewidth=0.7, alpha=0.7)
+
+        # Customise the plot
+    plt.xticks(ticks=x, labels=features_to_analyse, rotation=90)  # Feature names as x-axis labels
+    plt.xlabel('Metrics')
+    plt.ylabel('Normalised Values')
+    plt.title('Parallel Coordinates Plot (Averaged by HomeTeam)')
+        # plt.legend(loc='upper left', bbox_to_anchor=(1.05, 1), fontsize=8, title='HomeTeam')
+    plt.grid(axis='y', linestyle='--', alpha=0.5)
+    plt.tight_layout()
+        # fig = ax.get_figure()
+    st.pyplot(fig)
+
 
     # # Split data into features and target
     # X = data.drop('HomeTeam', axis=1)

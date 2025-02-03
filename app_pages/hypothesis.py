@@ -81,6 +81,7 @@ def app():
 
     ### Arsenal individual Analysis
 
+
     # Convert numeric-like columns stored as object
     for col in df.select_dtypes(include=['object']).columns:
         try:
@@ -98,6 +99,23 @@ def app():
     # Filter for Arsenal Matches
     team_name = "Arsenal"
     arsenal_df = df[(df['HomeTeam'] == team_name) | (df['AwayTeam'] == team_name)]
+
+    # st.write("Arsenal Data Preview:", arsenal_df.head())
+    # st.write("Data Shape:", arsenal_df.shape)
+
+    # st.write("Missing Values in Arsenal Data:", arsenal_df.isna().sum())
+    # arsenal_df.fillna(0, inplace=True)  # Replace NaNs with 0
+
+    # st.write("Columns in Arsenal Data:", arsenal_df.columns)
+    # arsenal_df.columns = arsenal_df.columns.str.strip()
+
+    # st.write("Data for Plot:", melted_line_data.head())  # Check input data
+
+    # arsenal_df['FTHG'] = pd.to_numeric(arsenal_df['FTHG'], errors='coerce')
+    # arsenal_df['FTAG'] = pd.to_numeric(arsenal_df['FTAG'], errors='coerce')
+
+    # st.write("FTHG Stats:", arsenal_df['FTHG'].describe())
+    # st.write("FTAG Stats:", arsenal_df['FTAG'].describe())
 
     # Selected columns for analysis
     selected_columns = ['FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC']

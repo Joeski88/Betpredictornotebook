@@ -90,12 +90,3 @@ def app():
     
     st.write(data.head())
 
-    st.header("Overall Data Summary Visualisations")
-
-
-
-    st.subheader("Team Comparison Radar Plot")
-
-    st.subheader("Individual Team Comparison Radar Plot, Year By Year")
-
-    st.subheader("Outliers")

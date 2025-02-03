@@ -107,5 +107,23 @@ def calculateOverallPerformance(data):
 
     return temp, win_percentage
 
+def getParallelPlot(data, features, teams_to_plot):
+    # Group by HomeTeam and calculate the mean for numeric features
+    aggregated_data = data.groupby('HomeTeam')[features].mean().reset_index()
+
+    # Normalize numeric features for parallel coordinates
+    normalized_data = aggregated_data.copy()
+    for feature in features:
+        if feature in aggregated_data.columns:  # Ensure the feature exists in the DataFrame
+            normalized_data[feature] = (
+                (aggregated_data[feature] - aggregated_data[feature].min()) /
+                (aggregated_data[feature].max() - aggregated_data[feature].min())
+            )
+
+    # Filter for specific teams
+    filtered_data = normalized_data[normalized_data['HomeTeam'].isin(teams_to_plot)]
+
+    return filtered_data
+
 if __name__ == "__main__":
     print("untilsimported")
