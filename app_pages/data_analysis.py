@@ -69,9 +69,9 @@ def app():
         - ABP = Away Team Bookings Points (10 = yellow, 25 = red)
 
         A huge stat in football data analysis is a metric called 'XG',
-        short for Expected Goals, however i have decided against using this
+        short for Expected Goals, however I have decided against using this
         metric as this is a fairly recent statistic, and wont go back far enough 
-        which therefore makes it  hard as i want to use as much historical data
+        which therefore makes it  hard as I want to use as much historical data
         as possible.
         """)
 
@@ -101,7 +101,6 @@ def app():
     st.pyplot(fig)
     plt.clf() # To clear the figure
     data_feat, team_mapping, ftr_mapping = myutils.feature_engineering(data)
-    #calculateOverallPerformance(data)
 
     st.subheader("Correlation Matrix 2")
 
@@ -115,7 +114,6 @@ def app():
     as most of the points sit at close to 0 which means they dont tend to 
     affect each other in terms of outcome.
     """)
-    #print(data_feat.head())  # Check if data_feat is a valid DataFrame
 
     corr_matrix_feats = data_feat[features].corr()
     corr_plot2 = sb.heatmap(corr_matrix_feats, cmap="YlGnBu", annot=False)
@@ -141,7 +139,6 @@ def app():
     corr_plot2 = sb.heatmap(corr_matrix_feats, cmap="YlGnBu", annot=False)
     fig = corr_plot2.get_figure()
     st.pyplot(fig)
-
 
     # Parallel plot:
     features_to_analyse = [
@@ -183,10 +180,8 @@ def app():
     plt.xlabel('Metrics')
     plt.ylabel('Normalised Values')
     plt.title('Parallel Coordinates Plot (Averaged by HomeTeam)')
-        # plt.legend(loc='upper left', bbox_to_anchor=(1.05, 1), fontsize=8, title='HomeTeam')
     plt.grid(axis='y', linestyle='--', alpha=0.5)
     plt.tight_layout()
-        # fig = ax.get_figure()
     st.pyplot(fig)
 
 

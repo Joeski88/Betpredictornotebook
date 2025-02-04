@@ -12,7 +12,21 @@ import myutils
 
 # Load dataset
 file_path = "./jupyter_notebooks/data/full_dataset.csv"
-df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
+
+main_df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
+df = main_df
+
+datasets = {
+"prem1": pd.read_csv("./jupyter_notebooks/data/20_21.csv"),
+"prem2": pd.read_csv("./jupyter_notebooks/data/21_22.csv"),
+"prem3": pd.read_csv("./jupyter_notebooks/data/22_23.csv"),
+"prem4": pd.read_csv("./jupyter_notebooks/data/23_24.csv"),
+"prem5": pd.read_csv("./jupyter_notebooks/data/24_25.csv")}
+
+st.write(df.head())
+print(df.columns)
+print("Main dataset columns:", df.columns)
+print("Loaded dataset keys:", datasets.keys())
 
 def app():
     st.title("Hypothesis")
@@ -40,8 +54,19 @@ def app():
     visualizing match data.
     """)
 
-    st.header("Multiteam Parallel Coordinate Plot")
-    # Convert numeric-like columns stored as object
+    st.header("Team Comparison Parallel Coordinate Plot")
+
+    if "df" in locals() or "df" in globals():
+        print("df type:", type(df))
+        print("df preview:\n", df.head())
+    else:
+        print("df is not defined")
+
+
+    st.write("""
+    Select teams to compare.
+    """)
+    # Ensure numeric-like columns stored as object are converted
     for col in df.select_dtypes(include=['object']).columns:
         try:
             df[col] = pd.to_numeric(df[col])  # Convert if possible
@@ -49,97 +74,108 @@ def app():
             pass  # Keep as object if conversion fails
 
     # Select relevant columns (ensure only numeric data is used)
-    categorical_cols = ['HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
+    categorical_cols = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
     df[categorical_cols] = df[categorical_cols].apply(lambda x: pd.factorize(x)[0])
 
     # Drop unnecessary columns
     df.drop(['Date', 'Time', 'Referee'], axis=1, inplace=True, errors='ignore')
 
-    # Select columns for visualization
-    selected_columns = ['HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
-    existing_columns = [col for col in selected_columns if col in df.columns]
+    # Get unique team names
+    teams = sorted(set(df['HomeTeam'].unique()).union(df['AwayTeam'].unique()))
 
-    if existing_columns:
+    # Team selection
+    team_1 = st.selectbox("Select First Team:", teams, index=0)
+    team_2 = st.selectbox("Select Second Team:", teams, index=1)
+
+    # Filter dataset to only include selected teams
+    filtered_df = df[(df['HomeTeam'].isin([team_1, team_2])) | (df['AwayTeam'].isin([team_1, team_2]))]
+
+    # Select columns for visualization
+    selected_columns = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
+    existing_columns = [col for col in selected_columns if col in filtered_df.columns]
+
+    if existing_columns and not filtered_df.empty:
         # Normalize data for parallel coordinates plot
-        df_normalized = (df[existing_columns] - df[existing_columns].min()) / (df[existing_columns].max() - df[existing_columns].min())
+        df_normalized = (filtered_df[existing_columns] - filtered_df[existing_columns].min()) / (filtered_df[existing_columns].max() - filtered_df[existing_columns].min())
 
         # Create Parallel Coordinates Plot
         fig = px.parallel_coordinates(
             df_normalized,
             dimensions=existing_columns,
-            color=df['FTR'],
+            color=filtered_df['FTR'],  # Color based on Full Time Result
             labels={col: col.replace('_', ' ') for col in existing_columns},
-            title="Parallel Coordinates Plot for Match Stats"
+            title=f"Comparison: {team_1} vs {team_2}"
         )
 
         # Show plot
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.warning("Selected columns are missing from the dataset.")
+        st.warning("No data available for the selected teams.")
 
-    st.header("Individual Team Analysis")
+    st.write(""" 
+    This parallel cooridnated plot shows a comparison of 2 teams of your choice, 
+    I will compare Arsenal and Aston Villa.
+
+    As you can see.............
+    """)
 
     ### Arsenal individual Analysis
+    st.write(df.dtypes)  # Display the data types of all columns
 
+    st.write("""
+    In this section I will analyse individual team data, 
+    and I will focus on Arsenal 
+    (Mainly because of alphabetical order, but also as I am a huge Arsenal fan).
+    I have also added a feature that allows you to edit the plots to display 
+    any teams or season/year data on the given metrics. So you can change to see 
+    a teams development over the past 5 years.
+    """)
+    
+    # Dropdown to select the dataset
+    dataset_name = st.selectbox("Select a Dataset", list(datasets.keys()))
 
-    # Convert numeric-like columns stored as object
-    for col in df.select_dtypes(include=['object']).columns:
-        try:
-            df[col] = pd.to_numeric(df[col])  # Convert if possible
-        except ValueError:
-            pass  # Keep as object if conversion fails
+    # Load the selected dataset
+    df = datasets[dataset_name]
+
+    # List of teams from the dataset
+    teams = pd.concat([df['HomeTeam'], df['AwayTeam']]).unique().tolist()
+
+    # Dropdown to select a team
+    team_name = st.selectbox("Select a Team for Analysis", teams)
 
     # Encode categorical columns
     categorical_cols = ['HomeTeam', 'AwayTeam', 'FTR', 'HTR']
-    df[categorical_cols] = df[categorical_cols].apply(lambda x: pd.factorize(x)[0])
-    print(df[categorical_cols])
+
     # Drop unnecessary columns
     df.drop(['Date', 'Time', 'Referee'], axis=1, inplace=True, errors='ignore')
 
-    # Filter for Arsenal Matches
-    team_name = "Arsenal"
-    arsenal_df = df[(df['HomeTeam'] == team_name) | (df['AwayTeam'] == team_name)]
-
-    # st.write("Arsenal Data Preview:", arsenal_df.head())
-    # st.write("Data Shape:", arsenal_df.shape)
-
-    # st.write("Missing Values in Arsenal Data:", arsenal_df.isna().sum())
-    # arsenal_df.fillna(0, inplace=True)  # Replace NaNs with 0
-
-    # st.write("Columns in Arsenal Data:", arsenal_df.columns)
-    # arsenal_df.columns = arsenal_df.columns.str.strip()
-
-    # st.write("Data for Plot:", melted_line_data.head())  # Check input data
-
-    # arsenal_df['FTHG'] = pd.to_numeric(arsenal_df['FTHG'], errors='coerce')
-    # arsenal_df['FTAG'] = pd.to_numeric(arsenal_df['FTAG'], errors='coerce')
-
-    # st.write("FTHG Stats:", arsenal_df['FTHG'].describe())
-    # st.write("FTAG Stats:", arsenal_df['FTAG'].describe())
+    # Filter dataset for the selected team
+    team_df = df[(df['HomeTeam'] == team_name) | (df['AwayTeam'] == team_name)]
 
     # Selected columns for analysis
     selected_columns = ['FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC']
-    existing_columns = [col for col in selected_columns if col in arsenal_df.columns]
+    existing_columns = [col for col in selected_columns if col in team_df.columns]
 
     # Display title
-    st.title(f"Individual Team Analysis: {team_name}")
+    st.title(f"Individual Team Analysis: {team_name} ({dataset_name})")
 
     # Display summary statistics
     st.subheader("Summary Statistics")
-    st.write(arsenal_df[existing_columns].describe())
+    st.write(team_df[existing_columns].describe())
 
     # Convert data into long format for Plotly
-    melted_goals = arsenal_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
+    melted_goals = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
 
-    # bar chart with x and y values
+    # Bar chart with x and y values
     fig1 = px.bar(
         melted_goals,
         x='index',
         y='Goals',
         color='Goal Type',
         labels={'Goals': 'Number of Goals', 'index': 'Match Index'},
-        title=f"{team_name} - Goals Scored & Conceded",
-        barmode='group'
+        title=f"{team_name} - Goals Scored & Conceded ({dataset_name})",
+        barmode='group',
+        color_discrete_sequence=['red', 'blue']  # Custom color to plot
     )
 
     st.plotly_chart(fig1, use_container_width=True)
@@ -158,7 +194,8 @@ def app():
         color='Goal Type',
         labels={'Goals': 'Number of Goals', 'index': 'Match Index'},
         title=f"{team_name} - Goals Scored & Conceded Over Time",
-        markers=True
+        markers=True,
+        color_discrete_sequence=['orange', 'green'] # add custom color to plot
     )
 
     st.plotly_chart(fig2, use_container_width=True)
@@ -171,16 +208,13 @@ def app():
 
     ### SOT to win percentage stacked bar plot
     st.subheader("SOT to Win Percentage stacked bar plot")
-        # Ensure correct column types
-    df['HST'] = pd.to_numeric(df['HST'], errors='coerce')
-    df['FTR'] = df['FTR'].astype(str)  # Ensure match result is a string
 
     # Filter necessary columns
     df_filtered = df[['HomeTeam', 'HST', 'FTR']].copy()
 
     # Convert match result into win/loss/draw category
-    df_filtered['Win'] = df_filtered['FTR'].apply(lambda x: 1 if x == 'H' else 0)
-
+    df_filtered['Win'] = df_filtered['FTR']
+    print("df_filtered", df_filtered.groupby(['HomeTeam', 'HST']).head())
     # Group by team and HST, calculate win percentage
     hst_win_df = df_filtered.groupby(['HomeTeam', 'HST']).agg(
         Matches=('FTR', 'count'),
@@ -189,7 +223,7 @@ def app():
 
     # Calculate win percentage
     hst_win_df['WinPercentage'] = (hst_win_df['Wins'] / hst_win_df['Matches']) * 100
-
+    print(hst_win_df.head())
     # Create stacked bar plot
     fig = px.bar(
         hst_win_df,
@@ -199,8 +233,27 @@ def app():
         title="HST (Shots on Target) to Win Percentage by Team",
         labels={"WinPercentage": "Win %", "HST": "Shots on Target"},
         barmode="stack",
+        color_discrete_sequence= ["Red", "Yellow"]
     )
 
     # Display chart in Streamlit
     st.plotly_chart(fig)
 
+    #     # Streamlit app
+    # st.title("📊 Multi-Dataset Bar Plot")
+
+    # # Select dataset
+    # selected_dataset = st.selectbox("Choose a dataset:", list(datasets.keys()))
+
+    # # Get the selected DataFrame
+    # df = datasets[selected_dataset]
+
+    # # Display dataset
+    # st.write("### 📋 Selected Dataset", df)
+
+    # # Plot bar chart
+    # fig, ax = plt.subplots()
+    # df.plot(kind="bar", x="Product", y=df.columns[1], legend=False, ax=ax)
+    # ax.set_ylabel(df.columns[1])
+    # ax.set_title(f"{selected_dataset} Bar Chart")
+    # st.pyplot(fig)

@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 
 # Load the dataset
-file_path = "./jupyter_notebooks/data/full_dataset.csv"  # Replace with your dataset path
+file_path = "./jupyter_notebooks/data/full_dataset.csv"
 data = pd.read_csv(file_path)
 
 def app():
