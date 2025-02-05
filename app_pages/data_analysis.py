@@ -12,19 +12,26 @@ from sklearn.preprocessing import LabelEncoder
 
 import myutils
 
-    # Feature selection
+# Feature selection
 features = [
         'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
         'HC', 'AC', 'HY', 'AY', 'HR', 'AR', 
         'AvgH', 'AvgD', 'AvgA'
 ]
 
-# Load dataset
-file_path = "./jupyter_notebooks/data/full_dataset.csv"
-data = pd.read_csv(file_path)
-df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
-
 def app():
+
+    # Load dataset
+    file_path = "./jupyter_notebooks/data/full_dataset.csv"
+    data = pd.read_csv(file_path)
+    df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
+
+    datasets = {
+    "20-21": pd.read_csv("./jupyter_notebooks/data/20_21.csv"),
+    "21-22": pd.read_csv("./jupyter_notebooks/data/21_22.csv"),
+    "22-23": pd.read_csv("./jupyter_notebooks/data/22_23.csv"),
+    "23-24": pd.read_csv("./jupyter_notebooks/data/23_24.csv"),
+    "24-25": pd.read_csv("./jupyter_notebooks/data/24_25.csv")}
     st.title("Data Analysis")
 
     st.header("Data Set Summary")
@@ -75,7 +82,7 @@ def app():
         as possible.
         """)
 
-    st.write(df.describe())
+    #st.write(df.describe())
 
     st.header("Correlation Matrix")
 
@@ -121,12 +128,6 @@ def app():
     st.pyplot(fig)
     
     st.header("Overall Data Summary Visualisations")
-
-    st.subheader("Team Comparison Radar Plot")
-
-    st.subheader("Individual Team Comparison Radar Plot, Year By Year")
-
-    st.subheader("Outliers")
 
     data_feat, team_mapping, ftr_mapping = myutils.feature_engineering(data)
     
@@ -184,6 +185,54 @@ def app():
     plt.tight_layout()
     st.pyplot(fig)
 
+    st.subheader("Team Comparison Radar Plot")
+
+    Teams = ("Arsenal", "Aston Villa", "Bournemouth","Brentford","Brighton",
+    "Crystal Palace","Chelsea","Everton","Fulham","Ipswich",
+    "Nottingham Forest","Man City","Man United","Liverpool",
+    "Tottenham","Newcastle","Southampton","Wolves","West Ham","Leicester",)
+
+    # Select the first team for the match
+    team1 = st.selectbox(
+        f"Select Team 1",
+        Teams,
+        key="0"
+    )
+
+    # Select the second team for the match
+    team2 = st.selectbox(
+        f"Select Team 2",
+        Teams,
+        key="1"  # Unique key for each selectbox
+    )
+
+    # Optionally, show the selected teams for the match
+    st.write(f"Match: {team1} vs {team2}")
+    st.write('---')  # Separator for readability
+
+    # from multiselect
+    metrics = ['FTHG', 'FTAG', 'HS', 'HST', 'HC', 'AS', 'AST', 'AC']
+    mapping = {
+        'FTHG': 'Full time Home Goals', 
+        'FTAG': 'Full time Away Goals', 
+        'HS': 'Home Shots', 
+        'HST': 'Home Shots on Target', 
+        'HC': 'Home Corners', 
+        'AS': 'Away Shots', 
+        'AST': 'Away Shots on Target',
+        'AC': 'Away Corners'
+    }
+
+    fig = myutils.plot_metrics(df, team1, team2, metrics, mapping)
+
+    st.pyplot(fig)
+    # Optionally, show the selected teams for the match
+    st.write(f"Match: {team1} vs {team2}")
+    st.write('---')  # Separator for readability
+
+    st.subheader("Individual Team Comparison Radar Plot, Year By Year")
+
+    st.subheader("Outliers")
 
     # # Split data into features and target
     # X = data.drop('HomeTeam', axis=1)

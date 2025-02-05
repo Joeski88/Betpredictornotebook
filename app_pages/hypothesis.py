@@ -10,27 +10,26 @@ from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelEncoder
 import myutils
 
-# Load dataset
-file_path = "./jupyter_notebooks/data/full_dataset.csv"
-
-main_df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
-df = main_df
-
-datasets = {
-"prem1": pd.read_csv("./jupyter_notebooks/data/20_21.csv"),
-"prem2": pd.read_csv("./jupyter_notebooks/data/21_22.csv"),
-"prem3": pd.read_csv("./jupyter_notebooks/data/22_23.csv"),
-"prem4": pd.read_csv("./jupyter_notebooks/data/23_24.csv"),
-"prem5": pd.read_csv("./jupyter_notebooks/data/24_25.csv")}
-
-st.write(df.head())
-print(df.columns)
-print("Main dataset columns:", df.columns)
-print("Loaded dataset keys:", datasets.keys())
-
 def app():
+        # Load dataset
+    file_path = "./jupyter_notebooks/data/full_dataset.csv"
+
+    df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
+
+    datasets = {
+    "20-21": pd.read_csv("./jupyter_notebooks/data/20_21.csv"),
+    "21-22": pd.read_csv("./jupyter_notebooks/data/21_22.csv"),
+    "22-23": pd.read_csv("./jupyter_notebooks/data/22_23.csv"),
+    "23-24": pd.read_csv("./jupyter_notebooks/data/23_24.csv"),
+    "24-25": pd.read_csv("./jupyter_notebooks/data/24_25.csv")}
+
+    # st.write(df.head())
+    print(df.columns)
+    print("Main dataset columns:", df.columns)
+    print("Loaded dataset keys:", datasets.keys())
     st.title("Hypothesis")
-# Hypothesis Section
+    
+    # Hypothesis Section
     st.header("Hypothesis")
     st.markdown("""
     We hypothesize that by leveraging historical football match data, including:
@@ -55,13 +54,6 @@ def app():
     """)
 
     st.header("Team Comparison Parallel Coordinate Plot")
-
-    if "df" in locals() or "df" in globals():
-        print("df type:", type(df))
-        print("df preview:\n", df.head())
-    else:
-        print("df is not defined")
-
 
     st.write("""
     Select teams to compare.
@@ -120,16 +112,7 @@ def app():
     """)
 
     ### Arsenal individual Analysis
-    st.write(df.dtypes)  # Display the data types of all columns
-
-    st.write("""
-    In this section I will analyse individual team data, 
-    and I will focus on Arsenal 
-    (Mainly because of alphabetical order, but also as I am a huge Arsenal fan).
-    I have also added a feature that allows you to edit the plots to display 
-    any teams or season/year data on the given metrics. So you can change to see 
-    a teams development over the past 5 years.
-    """)
+    # st.write(df.dtypes)  # Display the data types of all columns
     
     # Dropdown to select the dataset
     dataset_name = st.selectbox("Select a Dataset", list(datasets.keys()))
@@ -159,9 +142,18 @@ def app():
     # Display title
     st.title(f"Individual Team Analysis: {team_name} ({dataset_name})")
 
+    st.write("""
+    In this section I will analyse individual team data, 
+    and I will focus on Arsenal 
+    (Mainly because of alphabetical order, but also as I am a huge Arsenal fan).
+    I have also added a feature that allows you to edit the plots to display 
+    any teams or season/year data on the given metrics. So you can change to see 
+    a teams development over the past 5 years.
+    """)
+
     # Display summary statistics
-    st.subheader("Summary Statistics")
-    st.write(team_df[existing_columns].describe())
+    # st.subheader("Summary Statistics")
+    # st.write(team_df[existing_columns].describe())
 
     # Convert data into long format for Plotly
     melted_goals = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
@@ -184,7 +176,7 @@ def app():
     st.subheader("Shots on Target Over Matches")
     
     # Convert data into long format for Plotly line chart
-    melted_line_data = arsenal_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
+    melted_line_data = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
 
     # Create the line chart
     fig2 = px.line(
@@ -203,7 +195,7 @@ def app():
     # Heatmap: Correlation Matrix
     st.subheader("Correlation Heatmap for Arsenal Matches")
     fig, ax = plt.subplots(figsize=(10, 6))
-    sb.heatmap(arsenal_df[existing_columns].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
+    sb.heatmap(team_df[existing_columns].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
     st.pyplot(fig)
 
     ### SOT to win percentage stacked bar plot
@@ -218,7 +210,7 @@ def app():
     # Group by team and HST, calculate win percentage
     hst_win_df = df_filtered.groupby(['HomeTeam', 'HST']).agg(
         Matches=('FTR', 'count'),
-        Wins=('Win', 'sum')
+        Wins=('Win', 'count')
     ).reset_index()
 
     # Calculate win percentage
@@ -239,21 +231,22 @@ def app():
     # Display chart in Streamlit
     st.plotly_chart(fig)
 
-    #     # Streamlit app
-    # st.title("📊 Multi-Dataset Bar Plot")
+    # TO ADD A MULTI-DATASET BAR PLOT
+    st.title("📊 Multi-Dataset Bar Plot")
 
-    # # Select dataset
-    # selected_dataset = st.selectbox("Choose a dataset:", list(datasets.keys()))
+    # Select dataset
+    selected_dataset = st.selectbox("Choose a dataset:", list(datasets.keys()))
 
-    # # Get the selected DataFrame
-    # df = datasets[selected_dataset]
+    # Get the selected DataFrame
+    df = datasets[selected_dataset]
 
-    # # Display dataset
-    # st.write("### 📋 Selected Dataset", df)
+    # Display dataset
+    st.write("### 📋 Selected Dataset", df)
+    # st.write("Column data types:", df.dtypes)
 
-    # # Plot bar chart
-    # fig, ax = plt.subplots()
-    # df.plot(kind="bar", x="Product", y=df.columns[1], legend=False, ax=ax)
-    # ax.set_ylabel(df.columns[1])
-    # ax.set_title(f"{selected_dataset} Bar Chart")
-    # st.pyplot(fig)
+    # Plot bar chart
+    fig, ax = plt.subplots()
+    df.plot(kind="bar", x="HST", y=df.columns[1], legend=False, ax=ax)
+    ax.set_ylabel(df.columns[1])
+    ax.set_title(f"{selected_dataset} Bar Chart")
+    st.pyplot(fig)

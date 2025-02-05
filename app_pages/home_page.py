@@ -73,7 +73,7 @@ def app():
     # Handle missing values
     data.ffill(inplace=True)
 
-    st.write(data.head())
+    # st.write(data.head())
     
     st.subheader("Overall Win Percentage Bar Plot")  
     data_org, win_percentage = myutils.calculateOverallPerformance(data)
@@ -88,5 +88,14 @@ def app():
     plt.tight_layout()
     st.pyplot(fig)
     
-    st.write(data.head())
+    # st.write(data.head())
+
+    st.write("""
+    This is an overall win percentage from premier league teams over the last 5 
+    years. Immediately you can make a fairly obvious prediction based on this 
+    stat alone. You can bet that City, Liverpool and Arsenal will all feature 
+    highly as predicted winners with each having a percentage of 70%, 65% & 58% 
+    respectivley.
+
+    """)
 
