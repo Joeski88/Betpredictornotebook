@@ -43,7 +43,7 @@ def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC'
     stats = df[cols].groupby('HomeTeam').mean()
     
     # Select teams and stats to compare
-    teams = [team1, team2] #['Man United', 'Chelsea']#, 'Arsenal', 'Liverpool']
+    teams = [team1, team2]
     stats_to_plot = cols[1:] # ignore HomeTeam
     
     # Normalize data to a range of [0, 1]
@@ -56,9 +56,14 @@ def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC'
     
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
     
-    # Plot data for each team
-    
+    if team in normalized_stats.index:
+        values = normalized_stats.loc[team].values.flatten().tolist()
+    else:
+        print(f"KeyError: {team} not found in normalized_stats index")
+
     for team in teams:
+        if isinstance(team, pd.DataFrame):
+            team = team.iloc[0, 0]
         values = normalized_stats.loc[team].values.flatten().tolist()
         values += values[:1]  # Complete the circle
         ax.plot(angles, values, label=team, linewidth=2)
