@@ -34,7 +34,7 @@ def feature_engineering(data):
 
     return data, team_mapping, ftr_mapping
 
-def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC', 'AS', 'AST', 'AC'], mapping={}):
+def plot_metrics(df, team1, team2=None, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC', 'AS', 'AST', 'AC'], mapping={}, ax=None):
     # Example dataset (replace with your actual dataset)
     cols = ['HomeTeam']
     cols.extend(metrics)
@@ -43,7 +43,12 @@ def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC'
     stats = df[cols].groupby('HomeTeam').mean()
     
     # Select teams and stats to compare
-    teams = [team1, team2]
+    
+    if team2 == None:
+        teams = [team1]
+    else:
+        teams = [team1, team2]
+
     stats_to_plot = cols[1:] # ignore HomeTeam
     
     # Normalize data to a range of [0, 1]
@@ -54,17 +59,18 @@ def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC'
     angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
     angles += angles[:1]  # Complete the circle
     
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-    
-    if team in normalized_stats.index:
-        values = normalized_stats.loc[team].values.flatten().tolist()
+    if ax == None:
+        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
     else:
-        print(f"KeyError: {team} not found in normalized_stats index")
-
+        fig = ax.get_figure()
+        
     for team in teams:
         if isinstance(team, pd.DataFrame):
             team = team.iloc[0, 0]
+
+        print("Normalised:", normalized_stats)
         values = normalized_stats.loc[team].values.flatten().tolist()
+
         values += values[:1]  # Complete the circle
         ax.plot(angles, values, label=team, linewidth=2)
         ax.fill(angles, values, alpha=0.25)
@@ -83,7 +89,7 @@ def plot_metrics(df, team1, team2, metrics =  ['FTHG', 'FTAG', 'HS', 'HST', 'HC'
     ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
     
     plt.tight_layout()
-    return fig
+    return fig, ax
 
 def calculateOverallPerformance(data):
     temp = data.copy()
