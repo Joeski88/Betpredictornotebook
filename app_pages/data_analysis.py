@@ -136,14 +136,21 @@ def app():
 
     st.subheader("Outliers")
 
+    st.write("""Analyzing outliers in football data involves identifying data 
+             points that deviate significantly from the norm, which can provide 
+             valuable insights into player performance, team dynamics, and game
+             outcomes. The issue with this, is that, as the cliche goes, 
+             'Anything can happen in a game of football' and at any moment. 
+             This will account for many of the outliers in football data.""")
+
     data_feat, team_mapping, ftr_mapping = myutils.feature_engineering(data)
 
     # Define metric pairs for scatter plots
     metric_pairs = [
         ("FTHG", "HST"),  # Full-time home goals vs Home shots on target
-        ("AST", "HF"),    # Away shots on target vs Home fouls
-        ("AF", "HC"),     # Away fouls vs Home corners
-        ("AC", "FTHG")    # Away corners vs Full-time home goals
+        ("HS", "AS"),    # Home shots vs away shots
+        ("HF", "AF"),     #  Home fouls vs Away fouls
+        ("HC", "AC")    # home corners vs away corners
     ]
 
     # Set up figure and axes for 2x2 grid
@@ -155,6 +162,7 @@ def app():
             z_scores = zscore(df[column].dropna())
             return df.loc[abs(z_scores) > threshold]
 
+    # necessary to repeat dataset path as parallel plot doesnt work without - unknown why this bug happens
     datasets = {
             "20-21": pd.read_csv("./jupyter_notebooks/data/20_21.csv"),
             "21-22": pd.read_csv("./jupyter_notebooks/data/21_22.csv"),
@@ -230,6 +238,17 @@ def app():
     st.write('---')
 
     st.subheader("Parallel Coordinate Plot")
+    
+    st.write("""Here we analyse 3 top clubs in Arsenal, Chelsea and Man United.
+              As expected, all three have averaged out over the last 5 years and
+              statistically are pretty even in alot of aspects.
+              From 'AC - away corners' onwards, Man United, they concede much
+              more corners in comparison to Arsenal. You can then see that
+              Man United's disciplinary record is better than both
+              Chelsea and Arsenal. This aids in betting prediction as it shows 
+              that Man United are less likely to recieve a yellow or red card 
+              than Arsenal and Chelsea.""")
+
     # List of features to analyse
     features_to_analyse = [
             'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
@@ -272,6 +291,7 @@ def app():
     plt.title('Parallel Coordinates Plot (Averaged by HomeTeam)')
     plt.grid(axis='y', linestyle='--', alpha=0.5)
     plt.tight_layout()
+    plt.legend(loc='upper right')
     st.pyplot(fig)
 
     st.write('---')
@@ -397,5 +417,27 @@ def app():
         fig, ax = myutils.plot_metrics(df1, team1, None, metrics, mapping)
         fig, ax = myutils.plot_metrics(df2, team1, None, metrics, mapping, ax)
         st.pyplot(fig)
+    
+    st.write('---')
+    
+    st.subheader("Year by Year Comparison")
+
+    st.write("Lets take a look at Arsenals 20/21 season, and compare it with last season, 23/24.")
+
+    st.image("./images/arsecomparison.png")
+
+    st.write("""This shows a quite incredible change in form and results.
+            In 20/21 Arsenals stats shown here are low. But they are only 
+             exposed as such when you add last seasons stats on top.
+             The home statistics are relatively close, however the major
+             changes are obvious in the away stats, meaning Arsenals defence has
+             drastically imporved over the 2 years. with goals conceded down by
+             at least 20%, corners conceded and shots conceded all much lower, 
+             and perhaps the biggest difference is the amount of goals arsenal
+             scored in comparison to 20/21. This would indicate that Arsenal
+             would be a strong contender for most bets your planning on placing.
+             Especially when they are at home.""")
+
+    
 
     

@@ -14,9 +14,9 @@ file_path = "./jupyter_notebooks/data/full_dataset.csv"
 data = pd.read_csv(file_path)
 
 def app():
-    st.title("Football betting notebook")
-
     st.image("./images/premlogo.png")
+    
+    st.title("Football betting notebook")
 
     st.header("Project Summary")
 

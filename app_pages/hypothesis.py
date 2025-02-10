@@ -4,10 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sb
 import plotly.express as px
+
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelEncoder
+
 import myutils
 
 def app():
@@ -53,83 +55,81 @@ def app():
     visualizing match data.
     """)
 
-    st.header("Team Comparison Parallel Coordinate Plot")
+    # st.header("Team Comparison Parallel Coordinate Plot")
 
-    st.write("""
-    Select teams to compare.
-    """)
-    # Ensure numeric-like columns stored as object are converted
-    for col in df.select_dtypes(include=['object']).columns:
-        try:
-            df[col] = pd.to_numeric(df[col])  # Convert if possible
-        except ValueError:
-            pass  # Keep as object if conversion fails
+    # st.write("""
+    # Select teams to compare.
+    # """)
+    # # Ensure numeric-like columns stored as object are converted
+    # for col in df.select_dtypes(include=['object']).columns:
+    #     try:
+    #         df[col] = pd.to_numeric(df[col])  # Convert if possible
+    #     except ValueError:
+    #         pass  # Keep as object if conversion fails
 
-    # Select relevant columns (ensure only numeric data is used)
-    categorical_cols = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
-    df[categorical_cols] = df[categorical_cols].apply(lambda x: pd.factorize(x)[0])
+    # # Select relevant columns (ensure only numeric data is used)
+    # categorical_cols = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
+    # df[categorical_cols] = df[categorical_cols].apply(lambda x: pd.factorize(x)[0])
 
-    # Drop unnecessary columns
-    df.drop(['Date', 'Time', 'Referee'], axis=1, inplace=True, errors='ignore')
+    # # Drop unnecessary columns
+    # df.drop(['Date', 'Time', 'Referee'], axis=1, inplace=True, errors='ignore')
 
-    # Get unique team names
-    teams = sorted(set(df['HomeTeam'].unique()).union(df['AwayTeam'].unique()))
+    # # Get unique team names
+    # teams = sorted(set(df['HomeTeam'].unique()).union(df['AwayTeam'].unique()))
 
-    # Team selection
-    team_1 = st.selectbox("Select First Team:", teams, index=0)
-    team_2 = st.selectbox("Select Second Team:", teams, index=1)
+    # # Team selection
+    # team_1 = st.selectbox("Select First Team:", teams, index=0)
+    # team_2 = st.selectbox("Select Second Team:", teams, index=1)
 
-    # Filter dataset to only include selected teams
-    filtered_df = df[(df['HomeTeam'].isin([team_1, team_2])) | (df['AwayTeam'].isin([team_1, team_2]))]
+    # # Filter dataset to only include selected teams
+    # filtered_df = df[(df['HomeTeam'].isin([team_1, team_2])) | (df['AwayTeam'].isin([team_1, team_2]))]
 
-    # Select columns for visualization
-    selected_columns = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
-    existing_columns = [col for col in selected_columns if col in filtered_df.columns]
+    # # Select columns for visualization
+    # selected_columns = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
+    # existing_columns = [col for col in selected_columns if col in filtered_df.columns]
 
-    if existing_columns and not filtered_df.empty:
-        # Normalize data for parallel coordinates plot
-        df_normalized = (filtered_df[existing_columns] - filtered_df[existing_columns].min()) / (filtered_df[existing_columns].max() - filtered_df[existing_columns].min())
+    # if existing_columns and not filtered_df.empty:
+    #     # Normalize data for parallel coordinates plot
+    #     df_normalized = (filtered_df[existing_columns] - filtered_df[existing_columns].min()) / (filtered_df[existing_columns].max() - filtered_df[existing_columns].min())
 
-        # Create Parallel Coordinates Plot
-        fig = px.parallel_coordinates(
-            df_normalized,
-            dimensions=existing_columns,
-            color=filtered_df['FTR'],  # Color based on Full Time Result
-            labels={col: col.replace('_', ' ') for col in existing_columns},
-            title=f"Comparison: {team_1} vs {team_2}"
-        )
+    #     # Create Parallel Coordinates Plot
+    #     fig = px.parallel_coordinates(
+    #         df_normalized,
+    #         dimensions=existing_columns,
+    #         color=filtered_df['FTR'],  # Color based on Full Time Result
+    #         labels={col: col.replace('_', ' ') for col in existing_columns},
+    #         title=f"Comparison: {team_1} vs {team_2}"
+    #     )
 
-        # Show plot
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("No data available for the selected teams.")
+    #     # Show plot
+    #     st.plotly_chart(fig, use_container_width=True)
+    # else:
+    #     st.warning("No data available for the selected teams.")
 
-    st.write(""" 
-    This parallel cooridnated plot shows a comparison of 2 teams of your choice, 
-    I will compare Arsenal and Aston Villa.
+    # st.write(""" 
+    # This parallel cooridnated plot shows a comparison of 2 teams of your choice, 
+    # I will compare Arsenal and Aston Villa.
 
-    As you can see.............
-    """)
+    # As you can see.............
+    # """)
 
     ### Arsenal individual Analysis
     # st.write(df.dtypes)  # Display the data types of all columns
     
+    st.header("Individual Team Analysis - Arsenal")
+
     # Dropdown to select the dataset
     dataset_name = st.selectbox("Select a Dataset", list(datasets.keys()))
 
-    # Load the selected dataset
     df = datasets[dataset_name]
 
     # List of teams from the dataset
     teams = pd.concat([df['HomeTeam'], df['AwayTeam']]).unique().tolist()
 
-    # Dropdown to select a team
     team_name = st.selectbox("Select a Team for Analysis", teams)
 
-    # Encode categorical columns
     categorical_cols = ['HomeTeam', 'AwayTeam', 'FTR', 'HTR']
 
-    # Drop unnecessary columns
     df.drop(['Date', 'Time', 'Referee'], axis=1, inplace=True, errors='ignore')
 
     # Filter dataset for the selected team
@@ -138,9 +138,6 @@ def app():
     # Selected columns for analysis
     selected_columns = ['FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC']
     existing_columns = [col for col in selected_columns if col in team_df.columns]
-
-    # Display title
-    st.title(f"Individual Team Analysis: {team_name} ({dataset_name})")
 
     st.write("""
     In this section I will analyse individual team data, 
@@ -154,7 +151,7 @@ def app():
     # Display summary statistics
     # st.subheader("Summary Statistics")
     # st.write(team_df[existing_columns].describe())
-
+    st.subheader("Arsenal - Goals For and Against")
     # Convert data into long format for Plotly
     melted_goals = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
 
@@ -173,21 +170,21 @@ def app():
     st.plotly_chart(fig1, use_container_width=True)
 
     # Line Plot: Shots on Target Trend
-    st.subheader("Shots on Target Over Matches")
+    st.subheader("Home Shot vs Away Shots")
     
     # Convert data into long format for Plotly line chart
-    melted_line_data = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
+    melted_line_data = team_df[['HS', 'AS']].reset_index().melt(id_vars='index', var_name='Shots', value_name='Shots')
 
     # Create the line chart
     fig2 = px.line(
         melted_line_data,
         x='index',  
-        y='Goals',  
-        color='Goal Type',
-        labels={'Goals': 'Number of Goals', 'index': 'Match Index'},
-        title=f"{team_name} - Goals Scored & Conceded Over Time",
+        y='Shots',  
+        color='Shot Type',
+        labels={'Shots': 'Number of Shots', 'index': 'Match Index'},
+        title=f"{team_name} - Shots For and Against",
         markers=True,
-        color_discrete_sequence=['orange', 'green'] # add custom color to plot
+        color_discrete_sequence=['orange', 'green']
     )
 
     st.plotly_chart(fig2, use_container_width=True)
@@ -232,7 +229,7 @@ def app():
     st.plotly_chart(fig)
 
     # TO ADD A MULTI-DATASET BAR PLOT
-    st.title("📊 Multi-Dataset Bar Plot")
+    st.subheader("📊 Multi-Dataset Bar Plot")
 
     # Select dataset
     selected_dataset = st.selectbox("Choose a dataset:", list(datasets.keys()))
