@@ -73,7 +73,7 @@ def app():
     # Handle missing values
     data.ffill(inplace=True)
 
-    # st.write(data.head())
+    st.write(data.head())
     
     st.subheader("Overall Win Percentage Bar Plot")  
     data_org, win_percentage = myutils.calculateOverallPerformance(data)
