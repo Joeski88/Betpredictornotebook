@@ -55,66 +55,9 @@ def app():
     visualizing match data.
     """)
 
-    # st.header("Team Comparison Parallel Coordinate Plot")
-
-    # st.write("""
-    # Select teams to compare.
-    # """)
-    # # Ensure numeric-like columns stored as object are converted
-    # for col in df.select_dtypes(include=['object']).columns:
-    #     try:
-    #         df[col] = pd.to_numeric(df[col])  # Convert if possible
-    #     except ValueError:
-    #         pass  # Keep as object if conversion fails
-
-    # # Select relevant columns (ensure only numeric data is used)
-    # categorical_cols = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
-    # df[categorical_cols] = df[categorical_cols].apply(lambda x: pd.factorize(x)[0])
-
-    # # Drop unnecessary columns
-    # df.drop(['Date', 'Time', 'Referee'], axis=1, inplace=True, errors='ignore')
-
-    # # Get unique team names
-    # teams = sorted(set(df['HomeTeam'].unique()).union(df['AwayTeam'].unique()))
-
-    # # Team selection
-    # team_1 = st.selectbox("Select First Team:", teams, index=0)
-    # team_2 = st.selectbox("Select Second Team:", teams, index=1)
-
-    # # Filter dataset to only include selected teams
-    # filtered_df = df[(df['HomeTeam'].isin([team_1, team_2])) | (df['AwayTeam'].isin([team_1, team_2]))]
-
-    # # Select columns for visualization
-    # selected_columns = ['FTHG', 'FTAG', 'FTR', 'HC', 'AC', 'HR', 'AR', 'HS', 'AS', 'HST', 'AST']
-    # existing_columns = [col for col in selected_columns if col in filtered_df.columns]
-
-    # if existing_columns and not filtered_df.empty:
-    #     # Normalize data for parallel coordinates plot
-    #     df_normalized = (filtered_df[existing_columns] - filtered_df[existing_columns].min()) / (filtered_df[existing_columns].max() - filtered_df[existing_columns].min())
-
-    #     # Create Parallel Coordinates Plot
-    #     fig = px.parallel_coordinates(
-    #         df_normalized,
-    #         dimensions=existing_columns,
-    #         color=filtered_df['FTR'],  # Color based on Full Time Result
-    #         labels={col: col.replace('_', ' ') for col in existing_columns},
-    #         title=f"Comparison: {team_1} vs {team_2}"
-    #     )
-
-    #     # Show plot
-    #     st.plotly_chart(fig, use_container_width=True)
-    # else:
-    #     st.warning("No data available for the selected teams.")
-
-    # st.write(""" 
-    # This parallel cooridnated plot shows a comparison of 2 teams of your choice, 
-    # I will compare Arsenal and Aston Villa.
-
-    # As you can see.............
-    # """)
+    st.write('---')
 
     ### Arsenal individual Analysis
-    # st.write(df.dtypes)  # Display the data types of all columns
     
     st.header("Individual Team Analysis - Arsenal")
 
@@ -124,7 +67,7 @@ def app():
     df = datasets[dataset_name]
 
     # List of teams from the dataset
-    teams = pd.concat([df['HomeTeam'], df['AwayTeam']]).unique().tolist()
+    teams = sorted(pd.concat([df['HomeTeam'], df['AwayTeam']]).unique().tolist())
 
     team_name = st.selectbox("Select a Team for Analysis", teams)
 
@@ -148,10 +91,10 @@ def app():
     a teams development over the past 5 years.
     """)
 
-    # Display summary statistics
-    # st.subheader("Summary Statistics")
-    # st.write(team_df[existing_columns].describe())
+    st.write('---')
+
     st.subheader("Arsenal - Goals For and Against")
+
     # Convert data into long format for Plotly
     melted_goals = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
 
@@ -169,11 +112,13 @@ def app():
 
     st.plotly_chart(fig1, use_container_width=True)
 
+    st.write('---')
+
     # Line Plot: Shots on Target Trend
     st.subheader("Home Shot vs Away Shots")
     
     # Convert data into long format for Plotly line chart
-    melted_line_data = team_df[['HS', 'AS']].reset_index().melt(id_vars='index', var_name='Shots', value_name='Shots')
+    melted_line_data = team_df[['HS', 'AS']].reset_index().melt(id_vars='index', var_name='Shot Type', value_name='Shots')
 
     # Create the line chart
     fig2 = px.line(
@@ -189,44 +134,60 @@ def app():
 
     st.plotly_chart(fig2, use_container_width=True)
 
+    st.write('---')
+
     # Heatmap: Correlation Matrix
+
     st.subheader("Correlation Heatmap for Arsenal Matches")
     fig, ax = plt.subplots(figsize=(10, 6))
     sb.heatmap(team_df[existing_columns].corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
     st.pyplot(fig)
 
+    st.write("""
+    Herre you can see some clear correlations, the obvious ones sucha as, HST
+    (home shots on target) is predictably highly correlated with
+    FTHG (full time home goals), and shots on target being highly 
+    correlated with total shots. This further enhances the hypothesis that the 
+    more attacking options you create, the higher chance there is of the team 
+    scoring goals, and essentially winning games.
+    """)
+
+    st.write('---')
+
     ### SOT to win percentage stacked bar plot
     st.subheader("SOT to Win Percentage stacked bar plot")
 
-    # Filter necessary columns
-    df_filtered = df[['HomeTeam', 'HST', 'FTR']].copy()
+    df_filtered = df[['HomeTeam', 'FTHG', 'FTR']].copy()
 
-    # Convert match result into win/loss/draw category
-    df_filtered['Win'] = df_filtered['FTR']
-    print("df_filtered", df_filtered.groupby(['HomeTeam', 'HST']).head())
-    # Group by team and HST, calculate win percentage
-    hst_win_df = df_filtered.groupby(['HomeTeam', 'HST']).agg(
-        Matches=('FTR', 'count'),
-        Wins=('Win', 'count')
+    # Convert match result into binary win indicator (1=Win, 0=Not Win)
+    df_filtered['Win'] = (df_filtered['FTR'] == 'H').astype(int)
+    print("Filtered", df_filtered)
+    # Get total Goals and Wins for each HomeTeam
+    team_stats_df = df_filtered.groupby('HomeTeam').agg(
+        TotalGoals=('FTHG', 'sum'),
+        TotalWins=('Win', 'sum')
     ).reset_index()
 
-    # Calculate win percentage
-    hst_win_df['WinPercentage'] = (hst_win_df['Wins'] / hst_win_df['Matches']) * 100
-    print(hst_win_df.head())
-    # Create stacked bar plot
-    fig = px.bar(
-        hst_win_df,
-        x="HomeTeam",
-        y="WinPercentage",
-        color="HST",
-        title="HST (Shots on Target) to Win Percentage by Team",
-        labels={"WinPercentage": "Win %", "HST": "Shots on Target"},
-        barmode="stack",
-        color_discrete_sequence= ["Red", "Yellow"]
-    )
+    fig, ax = plt.subplots()
 
-    # Display chart in Streamlit
+    x = np.arange(len(team_stats_df['HomeTeam']))
+    bar_width = 0.6
+
+    # Plot Goals and Wins
+    bars1 = ax.bar(x - bar_width/2, team_stats_df['TotalGoals'], bar_width, label='Total Goals', color='blue')
+    bars2 = ax.bar(x + bar_width/2, team_stats_df['TotalWins'], bar_width, label='Total Wins', color='orange')
+
+    ax.set_xlabel("Home Team")
+    ax.set_ylabel("Total Count")
+    ax.set_title("Goals scored vs Wins")
+    ax.set_xticks(x)
+
+    ax.set_xticklabels(team_stats_df['HomeTeam'], rotation=90)
+    ax.legend()
+
     st.plotly_chart(fig)
+
+    st.write('---')
 
     # TO ADD A MULTI-DATASET BAR PLOT
     st.subheader("📊 Multi-Dataset Bar Plot")
@@ -236,14 +197,21 @@ def app():
 
     # Get the selected DataFrame
     df = datasets[selected_dataset]
+    avg_shots_df = df.groupby("HomeTeam")["HST"].mean().reset_index()
 
-    # Display dataset
-    st.write("### 📋 Selected Dataset", df)
-    # st.write("Column data types:", df.dtypes)
+    st.write("###  Selected Dataset", df)
 
-    # Plot bar chart
+     # Plot bar chart
     fig, ax = plt.subplots()
-    df.plot(kind="bar", x="HST", y=df.columns[1], legend=False, ax=ax)
-    ax.set_ylabel(df.columns[1])
-    ax.set_title(f"{selected_dataset} Bar Chart")
+
+    avg_shots_df.set_index("HomeTeam").plot(kind="bar", legend=False, ax=ax, color='skyblue')
+
+    # Set axis labels and title
+    ax.set_xlabel("Home Team")
+    ax.set_ylabel("Average Shots on Target (HST)")
+    ax.set_xticklabels(avg_shots_df["HomeTeam"], rotation=90)
+    ax.set_title(f"{selected_dataset} - Average Shots on Target Per Team")
+
     st.pyplot(fig)
+
+    st.write('---')
