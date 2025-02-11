@@ -93,7 +93,15 @@ def app():
 
     st.write('---')
 
-    st.subheader("Arsenal - Goals For and Against")
+    st.subheader("Goals")
+    
+    st.write("""
+    Goals win games. We've established that a huge focus on football betting is 
+    how many goals a team scores. If you back a team that is not scoring goals 
+    for fun, there's always a risk.  
+    """)
+
+    st.write("Let's look into how goals affect games in a little more detail.")
 
     # Convert data into long format for Plotly
     melted_goals = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
@@ -110,9 +118,18 @@ def app():
         color_discrete_sequence=['red', 'blue']  # Custom color to plot
     )
 
+    fig1.for_each_trace(lambda t: t.update(name={'FTHG': team_name, 'FTAG': 'Away team'}.get(t.name, t.name)))
     st.plotly_chart(fig1, use_container_width=True)
+    
+    st.write("""
+    Explanation goes here.............
+    """)
 
     st.write('---')
+
+    st.write("""
+    Let's investigate if shot creation and prevention will have an effect.
+    """)
 
     # Line Plot: Shots on Target Trend
     st.subheader("Home Shot vs Away Shots")
@@ -131,8 +148,12 @@ def app():
         markers=True,
         color_discrete_sequence=['orange', 'green']
     )
-
+    fig2.for_each_trace(lambda t: t.update(name={'HS': team_name, 'AS': 'Away team'}.get(t.name, t.name)))
     st.plotly_chart(fig2, use_container_width=True)
+
+    st.write("""
+    Explanation goes here.............
+    """)
 
     st.write('---')
 
@@ -187,10 +208,14 @@ def app():
 
     st.plotly_chart(fig)
 
+    st.write("""
+    Explanation goes here.............
+    """)
+
     st.write('---')
 
     # TO ADD A MULTI-DATASET BAR PLOT
-    st.subheader("📊 Multi-Dataset Bar Plot")
+    st.subheader("Multi-Dataset Bar Plot")
 
     # Select dataset
     selected_dataset = st.selectbox("Choose a dataset:", list(datasets.keys()))
@@ -213,5 +238,9 @@ def app():
     ax.set_title(f"{selected_dataset} - Average Shots on Target Per Team")
 
     st.pyplot(fig)
+
+    st.write("""
+    Explanation goes here.............
+    """)
 
     st.write('---')
