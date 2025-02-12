@@ -103,22 +103,45 @@ def app():
 
     st.write("Let's look into how goals affect games in a little more detail.")
 
+    # Filter matches where the selected team was either Home or Away
+    team_matches = df[(df['HomeTeam'] == team_name) | (df['AwayTeam'] == team_name)].copy()
+
+    # Create a column for opponent team
+    team_matches['Opponent'] = team_matches.apply(
+        lambda row: row['AwayTeam'] if row['HomeTeam'] == team_name else row['HomeTeam'], axis=1
+    )
+
+    # Assign goals scored and conceded based on home/away status
+    team_matches['Goals_For'] = team_matches.apply(
+        lambda row: row['FTHG'] if row['HomeTeam'] == team_name else row['FTAG'], axis=1
+    )
+    team_matches['Goals_Against'] = team_matches.apply(
+        lambda row: row['FTAG'] if row['HomeTeam'] == team_name else row['FTHG'], axis=1
+    )
+
+    # Group by opponent and sum the goals
+    team_goals = team_matches.groupby('Opponent').agg(
+        Total_Goals_For=('Goals_For', 'sum'),
+        Total_Goals_Against=('Goals_Against', 'sum')
+    ).reset_index()
+
     # Convert data into long format for Plotly
-    melted_goals = team_df[['FTHG', 'FTAG']].reset_index().melt(id_vars='index', var_name='Goal Type', value_name='Goals')
+    melted_goals = team_goals.melt(
+        id_vars='Opponent', var_name='Goal Type', value_name='Goals'
+    )
 
     # Bar chart with x and y values
     fig1 = px.bar(
         melted_goals,
-        x='index',
-        y='Goals',
-        color='Goal Type',
-        labels={'Goals': 'Number of Goals', 'index': 'Match Index'},
-        title=f"{team_name} - Goals Scored & Conceded ({dataset_name})",
-        barmode='group',
-        color_discrete_sequence=['red', 'blue']  # Custom color to plot
+        x='Opponent',  # X-axis: Opposing teams
+        y='Goals',  # Y-axis: Goals scored/conceded
+        color='Goal Type',  
+        labels={'Goals': 'Total Goals', 'Opponent': 'Opponent Team'},
+        title=f"{team_name} - Total Goals Scored & Conceded Against All Teams",
+        barmode='group',  
+        color_discrete_sequence=['red', 'blue']  # Red for goals scored, blue for conceded
     )
 
-    fig1.for_each_trace(lambda t: t.update(name={'FTHG': team_name, 'FTAG': 'Away team'}.get(t.name, t.name)))
     st.plotly_chart(fig1, use_container_width=True)
     
     st.write("""

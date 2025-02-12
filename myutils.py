@@ -3,7 +3,18 @@ import numpy as np
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+import joblib
 
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split, StratifiedKFold
+
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import to_categorical
+
+save_path = "./model/"
 # Set which features to focus on
 features = [
     'HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'HS', 'AS', 'HST', 'AST',
@@ -135,6 +146,188 @@ def getParallelPlot(data, features, teams_to_plot):
     filtered_data = normalized_data[normalized_data['HomeTeam'].isin(teams_to_plot)]
 
     return filtered_data
+
+def preprocess_data(data):
+    # This is where we will preprocess the data and create some new features 
+    # by calculating them given the stats we have in this dataset
+    # Ensure HomeTeam & AwayTeam are string
+    data['HomeTeam'] = data['HomeTeam'].astype(str)
+    data['AwayTeam'] = data['AwayTeam'].astype(str)
+
+    # Create Historical Features
+    # (Requires known post-match data for older matches, used to calculate historical averages)
+    data['HomeGoalsAvg'] = data.groupby('HomeTeam')['FTHG'].transform('mean')
+    data['AwayGoalsAvg'] = data.groupby('AwayTeam')['FTAG'].transform('mean')
+    data['HomeWinPct']   = data.groupby('HomeTeam')['FTR'].transform(lambda x: (x == 'H').mean())
+    data['AwayWinPct']   = data.groupby('AwayTeam')['FTR'].transform(lambda x: (x == 'A').mean())
+    data['GoalDifference'] = data['HomeGoalsAvg'] - data['AwayGoalsAvg']
+
+    # Create Betting Features from Pre-Match Odds
+    # Make sure we don't divide by zero
+    # Replace any 0 or missing odds with NaN to avoid `inf`` issues
+    odds_columns = ['AvgH','AvgD','AvgA', 'Avg>2.5','Avg<2.5', 'AvgAHH','AvgAHA']
+    for col in odds_columns:
+        if col in data.columns:
+            data[col] = pd.to_numeric(data[col], errors='coerce')
+            data[col] = data[col].replace(0, np.nan)
+
+    # --- Core Implied Probabilities (1 / odds) ---
+    if all(x in data.columns for x in ['AvgH','AvgD','AvgA']):
+        data['Implied_Prob_H'] = 1 / data['AvgH']
+        data['Implied_Prob_D'] = 1 / data['AvgD']
+        data['Implied_Prob_A'] = 1 / data['AvgA']
+        # Confidence = max implied probability
+        data['Odds_Confidence'] = data[['Implied_Prob_H','Implied_Prob_D','Implied_Prob_A']].max(axis=1)
+    else:
+        data['Implied_Prob_H'] = np.nan
+        data['Implied_Prob_D'] = np.nan
+        data['Implied_Prob_A'] = np.nan
+        data['Odds_Confidence'] = np.nan
+
+    # --- Over/Under 2.5 Probabilities ---
+    if all(x in data.columns for x in ['Avg>2.5','Avg<2.5']):
+        data['Over2.5_Prob']  = 1 / data['Avg>2.5']
+        data['Under2.5_Prob'] = 1 / data['Avg<2.5']
+        data['Expected_Goals'] = data['Over2.5_Prob'] - data['Under2.5_Prob']
+    else:
+        data['Over2.5_Prob']  = np.nan
+        data['Under2.5_Prob'] = np.nan
+        data['Expected_Goals'] = np.nan
+
+    # --- Asian Handicap Probabilities ---
+    if all(x in data.columns for x in ['AvgAHH','AvgAHA']):
+        data['AH_Prob_H'] = 1 / data['AvgAHH']
+        data['AH_Prob_A'] = 1 / data['AvgAHA']
+    else:
+        data['AH_Prob_H'] = np.nan
+        data['AH_Prob_A'] = np.nan
+
+    # data['AHh'] should already exist as the handicap line.
+    # If not, set default.
+    if 'AHh' not in data.columns:
+        data['AHh'] = 0.0
+
+    # Market Discrepancy - just a possible measure, but not sure
+    # Market_Expectation = Implied_Prob_H * 3 - 1
+
+    # Multiplying by 3 is just a simplified stand-in for “typical” home odds (e.g., if 
+    # average home odds are around 3.00, that’s a break-even point).
+    # Subtracting 1 adjusts it so that a positive value implies the market is “overrating” the 
+    # home team (believing the home team is more likely to win than 
+    # a neutral baseline would suggest), whereas a negative value implies the market 
+    # is “underrating” the home team.
+    if 'Implied_Prob_H' in data.columns:
+        data['Market_Expectation'] = data['Implied_Prob_H'] * 3 - 1
+    else:
+        data['Market_Expectation'] = np.nan
+
+    # Encode Teams & Result
+    unique_teams = pd.concat([data['HomeTeam'], data['AwayTeam']]).unique()
+    team_encoder = LabelEncoder()
+    team_encoder.fit(unique_teams)
+
+    data['HomeTeam'] = team_encoder.transform(data['HomeTeam'])
+    data['AwayTeam'] = team_encoder.transform(data['AwayTeam'])
+
+    joblib.dump(team_encoder, save_path + 'team_encoder.pkl')
+
+    # Encode final result FTR: 0=H, 1=D, 2=A
+    ftr_encoder = LabelEncoder()
+    data['FTR'] = ftr_encoder.fit_transform(data['FTR'])
+    joblib.dump(ftr_encoder, save_path + 'ftr_encoder.pkl')
+
+    # Fill any missing values
+    data.fillna(0, inplace=True)
+
+    return data, team_encoder
+
+
+def predict_match(
+    home_team_str, away_team_str,
+    model, scaler, team_encoder,
+    normalised_data
+):
+    
+    # Build a feature vector for a future match.
+    # Here, we just look up the historical features from any existing row.
+    
+    # Check team existence
+    if home_team_str not in team_encoder.classes_:
+        raise ValueError(f"Unknown home team: {home_team_str}")
+    if away_team_str not in team_encoder.classes_:
+        raise ValueError(f"Unknown away team: {away_team_str}")
+
+    home_encoded = team_encoder.transform([home_team_str])[0]
+    away_encoded = team_encoder.transform([away_team_str])[0]
+
+    # We'll try to find any row in 'normalised_data' where HomeTeam==home_encoded,
+    # and similarly for away. Then we can glean the historical stats + betting odds.
+
+    home_rows = normalised_data[normalised_data['HomeTeam'] == home_encoded]
+    away_rows = normalised_data[normalised_data['AwayTeam'] == away_encoded]
+
+    if home_rows.empty or away_rows.empty:
+        raise ValueError(
+            f"Could not find historical data for {home_team_str} or {away_team_str}"
+        )
+
+    # Just pick the first row for each
+    home_goals_avg = home_rows['HomeGoalsAvg'].iloc[0]
+    away_goals_avg = away_rows['AwayGoalsAvg'].iloc[0]
+    home_win_pct   = home_rows['HomeWinPct'].iloc[0]
+    away_win_pct   = away_rows['AwayWinPct'].iloc[0]
+    goal_diff      = home_goals_avg - away_goals_avg
+
+    # For betting features, we pick them from the same row.
+    # Use the home_rows row for the home side and away_rows row for the away side.
+
+    implied_prob_h = home_rows['Implied_Prob_H'].iloc[0]
+    implied_prob_d = home_rows['Implied_Prob_D'].iloc[0]
+    implied_prob_a = away_rows['Implied_Prob_A'].iloc[0]
+    odds_conf      = max(implied_prob_h, implied_prob_d, implied_prob_a)
+
+    over2_5_prob   = home_rows['Over2.5_Prob'].iloc[0]
+    under2_5_prob  = home_rows['Under2.5_Prob'].iloc[0]
+    expected_goals = home_rows['Expected_Goals'].iloc[0]
+
+    ah_prob_h      = home_rows['AH_Prob_H'].iloc[0]
+    ah_prob_a      = away_rows['AH_Prob_A'].iloc[0]
+    ahh_line       = home_rows['AHh'].iloc[0]
+
+    market_exp     = home_rows['Market_Expectation'].iloc[0]
+
+    # Construct the feature array in same order as 'features'
+    input_vector = np.array([
+        home_encoded,
+        away_encoded,
+       # home_goals_avg,
+        #away_goals_avg,
+        home_win_pct,
+        away_win_pct,
+        goal_diff,
+        #implied_prob_h,
+        #implied_prob_d,
+        implied_prob_a,
+        odds_conf,
+       # over2_5_prob,
+       # under2_5_prob,
+        expected_goals,
+       # ah_prob_h,
+       # ah_prob_a,
+       # ahh_line,
+        market_exp
+    ]).reshape(1, -1)
+
+    # Scale it
+    input_scaled = scaler.transform(input_vector)
+
+    # Predict
+    # Keras model -> returns probability distribution over 3 classes
+    preds = model.predict(input_scaled, verbose=0)
+    label_num = np.argmax(preds, axis=1)[0]
+
+    mapping = {0: 'Home Win', 1: 'Draw', 2: 'Away Win'}
+    return mapping[label_num]
 
 if __name__ == "__main__":
     print("untilsimported")
