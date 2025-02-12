@@ -145,7 +145,11 @@ def app():
     st.plotly_chart(fig1, use_container_width=True)
     
     st.write("""
-    Explanation goes here.............
+    If we look at the 23/24 season with Arsenal, they out scored their opponents
+    on aggregate most times throughout the season. In fact only 2 teams
+    outscored them, Fulham and Aston Villa. That trajcetory has continued into 
+    this season, if you look at 24/25 dataset, you will see that despite not all
+    games having been played, are on course for a similar finish to the season.
     """)
 
     st.write('---')
@@ -175,7 +179,7 @@ def app():
     st.plotly_chart(fig2, use_container_width=True)
 
     st.write("""
-    Explanation goes here.............
+    This graph shows 
     """)
 
     st.write('---')
