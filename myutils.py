@@ -104,7 +104,7 @@ def plot_metrics(df, team1, team2=None, metrics =  ['FTHG', 'FTAG', 'HS', 'HST',
 
 def calculateOverallPerformance(data):
     temp = data.copy()
-        # Calculate wins for home and away
+    # Calculate wins for home and away
     home_wins = temp[temp['FTR'] == 'H'].groupby('HomeTeam').size()
     away_wins = temp[temp['FTR'] == 'A'].groupby('AwayTeam').size()
 
@@ -240,7 +240,6 @@ def preprocess_data(data):
     data.fillna(0, inplace=True)
 
     return data, team_encoder
-
 
 def predict_match(
     home_team_str, away_team_str,

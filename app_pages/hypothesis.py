@@ -179,7 +179,12 @@ def app():
     st.plotly_chart(fig2, use_container_width=True)
 
     st.write("""
-    This graph shows 
+    This graph shows shows a change. The number of shots very much fluctuates.
+    Making it very difficult to make any predictions from, in the first graph, 
+    it shows Arsenal more often than not score more goals than their opponent, 
+    with that in mind you would assume that they would also take a lot of shots
+    to make that happen. Whereas this graph is plotting without any real
+    pattern.
     """)
 
     st.write('---')
@@ -202,41 +207,52 @@ def app():
 
     st.write('---')
 
-    ### SOT to win percentage stacked bar plot
-    st.subheader("SOT to Win Percentage stacked bar plot")
+    ### SOT to win percentage grouped bar plot
+    st.subheader("Average shots on target to total average win bar plot")
 
+    # Filter necessary columns
     df_filtered = df[['HomeTeam', 'FTHG', 'FTR']].copy()
 
     # Convert match result into binary win indicator (1=Win, 0=Not Win)
     df_filtered['Win'] = (df_filtered['FTR'] == 'H').astype(int)
-    print("Filtered", df_filtered)
+   # print("Filtered", df_filtered)
     # Get total Goals and Wins for each HomeTeam
     team_stats_df = df_filtered.groupby('HomeTeam').agg(
         TotalGoals=('FTHG', 'sum'),
         TotalWins=('Win', 'sum')
     ).reset_index()
 
-    fig, ax = plt.subplots()
+    teams = team_stats_df['HomeTeam']
+    goals = team_stats_df['TotalGoals']
+    wins = team_stats_df['TotalWins']
 
-    x = np.arange(len(team_stats_df['HomeTeam']))
-    bar_width = 0.6
+    # Set up the x locations for the groups
+    x = np.arange(len(teams))  # the label locations
+    width = 0.35  # the width of the bars
 
-    # Plot Goals and Wins
-    bars1 = ax.bar(x - bar_width/2, team_stats_df['TotalGoals'], bar_width, label='Total Goals', color='blue')
-    bars2 = ax.bar(x + bar_width/2, team_stats_df['TotalWins'], bar_width, label='Total Wins', color='orange')
+    fig, ax = plt.subplots(figsize=(12,6))
 
-    ax.set_xlabel("Home Team")
-    ax.set_ylabel("Total Count")
-    ax.set_title("Goals scored vs Wins")
+    # Plot bars for Total Goals
+    rects1 = ax.bar(x - width/2, goals, width, label='Total Goals', color='skyblue')
+
+    # Plot bars for Total Wins
+    rects2 = ax.bar(x + width/2, wins, width, label='Total Wins', color='orange')
+
+    # Add some text for labels, title and custom x-axis tick labels
+    ax.set_ylabel('Count')
+    ax.set_title('Total Goals vs. Total Wins by Home Team')
     ax.set_xticks(x)
-
-    ax.set_xticklabels(team_stats_df['HomeTeam'], rotation=90)
+    ax.set_xticklabels(teams, rotation=45, ha='right')
     ax.legend()
 
-    st.plotly_chart(fig)
+    st.pyplot(fig)
+
 
     st.write("""
-    Explanation goes here.............
+    Here we can clearly see where the cliche 'goals win games' comes from. 
+    There's a clear trend here, where the teams with a higher SOT count, 
+    generally score more goals than teams that dont. Always worth thinking about
+    these metrics when thinking of an under/over goals bet. 
     """)
 
     st.write('---')
@@ -267,7 +283,20 @@ def app():
     st.pyplot(fig)
 
     st.write("""
-    Explanation goes here.............
+    As the focus on this page has been on Arsenal, we will continue with that. 
+    After loading each of the 5 years data sets separately, Arsenal's stats were
+    as follows:""")
+    st.write("20/21: 4 SOT ave")
+    st.write("21/22: 6 SOT ave")    
+    st.write("22/23: 6.5 SOT ave")
+    st.write("23/24: 6.5 SOT ave")
+    st.write("24/25: 6.5 SOT ave (so far)")
+    
+    st.write("""
+    This shows a clear trend and improvement over the last 4 years. Arsenal have
+    only become a major force again in the premier league over the last 5 years.
+    This highlights the attacking improvement, but, not only improvement, 
+    but consistency too, which is a major part of sports betting.
     """)
 
     st.write('---')

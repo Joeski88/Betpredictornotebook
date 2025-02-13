@@ -1,7 +1,7 @@
 import streamlit as st
 
 def app():
-    st.title("Conclusion 🎯")
+    st.title("Conclusion")
 
     st.write("""Football betting analytics is a complex yet insightful
              application of data science, heavily influenced by statistical

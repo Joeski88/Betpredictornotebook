@@ -66,7 +66,7 @@ def app():
             team2 = st.selectbox(
                 f"Select Team 2 for Match {i}",
                 Teams,
-                key=f"team2_{i}"  # Unique key for each selectbox
+                key=f"team2_{i}"
             )
 
         nn_result = myutils.predict_match(
@@ -81,8 +81,8 @@ def app():
             st.selectbox(
                 "",
                 [nn_result],
-                key=f"NN_{i}",  # Unique key for each selectbox
-                disabled = True
+                key=f"NN_{i}",
+                #disabled = True
             )
 
         match_results.append([team1, team2, nn_result])

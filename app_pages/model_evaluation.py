@@ -24,7 +24,27 @@ def app():
 
     # Load Data
     st.title("Football Match Outcome Prediction")
-    st.write("This app evaluates machine learning models (Random Forest & Neural Network) for football match predictions.")
+    st.write("""
+    This page evaluates two machine-learning models—Random Forest and Neural 
+    Network—to predict football match outcomes. The evaluation process involves
+    data pre-processing, model training, performance metrics, and feature 
+    analysis.""")
+
+    st.subheader("Loading & Pre-processing Data")
+    st.write("""
+    The dataset is loaded from full_dataset.csv, containing historical football
+    match statistics from the last 5 years. Key pre-processing steps include:""")
+    st.write("**Normalization** – *Ensures features have a standard scale.*")
+    st.write("**Label Encoding** – *Converts categorical team names into numerical values.*")
+    st.write("**Feature Selection** – *Extracts relevant match statistics, including:*")
+    st.write("          *- Home & Away Team Win Percentages*")
+    st.write("          *- Goal Difference & Expected Goals*")
+    st.write("          *- Market Expectations & Betting Probabilities*")
+    st.write("""The dataset is then split into training (80%) and testing (20%) sets to
+    evaluate model performance.
+    """)
+
+    st.write('---')
 
     file_path = './jupyter_notebooks/data/full_dataset.csv'
     raw_data = pd.read_csv(file_path)
@@ -54,6 +74,12 @@ def app():
     rf_accuracy = accuracy_score(y_test, y_pred_rf)
     st.write(f"Random Forest Accuracy: {rf_accuracy:.3f}")
 
+    st.write("""
+    The Random Forest Classifier, is trained on the dataset. The model uses 100
+    decision trees for robust predictions. Classifies match results into Home 
+    Win (0), Draw (1), or Away Win (2).
+    """)
+
     # Display classification report as a DataFrame
     def classification_report_to_df(report):
         report_dict = classification_report(y_test, y_pred_rf, output_dict=True)
@@ -61,6 +87,10 @@ def app():
 
     st.subheader("Classification Report")
     st.dataframe(classification_report_to_df(classification_report(y_test, y_pred_rf)))
+
+    st.write("""
+    To understand which features impact predictions the most, a Feature
+    Importance Chart is displayed:""")
 
     # Feature Importance
     importances = rf_model.feature_importances_
@@ -72,6 +102,15 @@ def app():
     ax.set_ylabel("Feature")
     ax.set_title("Random Forest Feature Importances")
     st.pyplot(fig)
+
+    st.write(
+    """Home win percentage and goal difference tend to be key predictors.
+    Less important features could potentially be removed to optimize the model.
+    The bar chart visually represents how much each feature contributes to the 
+    predictions.
+    """)
+
+    st.write('---')
 
     # Show Neural Network Architecture
     num_classes = len(np.unique(y))
@@ -88,10 +127,27 @@ def app():
 
     st.subheader("Neural Network Architecture")
 
+    st.write("""
+    A deep learning model is also trained to compare its performance against 
+    Random Forest.
+    """)
+    st.write("""
+    Neureal networks can detect complex patterns that traditional machine 
+    learning models might miss. Making them very useful if handling larger
+    data sets.
+    """)
+
+    st.write("The NN model is trained with:")
+    st.write("50 epochs – The number of training iterations.")
+    st.write("Batch size of 8 – Small batch size ensures better weight updates.")
+    st.write("Categorical Crossentropy Loss – Suitable for multi-class classification.")
+    
     # Extract layer names and parameters
     layer_names = [layer.name for layer in nn_model.layers]
     layer_params = [layer.count_params() for layer in nn_model.layers]
     st.write("Sequential Model:")
+    st.write("*Layers* – Fully connected dense layers.")
+    st.write("*Parameters* – Number of trainable elements in each layer.")
     st.write("Layers:")
     st.write(layer_names)
     st.write("Parameters:")
@@ -134,3 +190,7 @@ def app():
         ax.set_title("Neural Network Accuracy per Epoch")
         ax.legend()
         st.pyplot(fig)
+
+        st.write("""
+        This plot shows...........
+        """)
