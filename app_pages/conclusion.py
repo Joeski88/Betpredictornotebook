@@ -33,4 +33,4 @@ def app():
              reasoning, we can make more informed betting decisions and
              improve our long-term betting strategy.""")
     
-    st.image("./images/image.jpg")
+    #st.image("./images/image.jpg")

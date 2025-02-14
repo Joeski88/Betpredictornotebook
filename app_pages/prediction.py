@@ -35,7 +35,7 @@ def app():
 
     st.title("Prediction Hub")
 
-    st.image("./images/pitch.jpg")
+    # st.image("./images/pitch.jpg")
 
     st.subheader("Individual Match Predictior")
 
