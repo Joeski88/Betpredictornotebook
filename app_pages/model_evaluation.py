@@ -81,7 +81,7 @@ def app():
     """)
 
     st.write("""
-    With a random forest score of 0.48 we need to look at nother option, as this
+    With a random forest score of 0.48 we need to look at another option, as this
     is worse than random guessing. So I tried a neural network model.
     """)
 
