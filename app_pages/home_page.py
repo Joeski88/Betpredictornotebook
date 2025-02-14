@@ -89,8 +89,6 @@ def app():
     plt.tight_layout()
     st.pyplot(fig)
     
-    # st.write(data.head())
-
     st.write("""
     This is an overall win percentage from premier league teams over the last 5 
     years. Immediately you can make a fairly obvious prediction based on this 

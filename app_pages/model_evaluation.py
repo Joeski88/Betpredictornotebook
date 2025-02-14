@@ -80,6 +80,11 @@ def app():
     Win (0), Draw (1), or Away Win (2).
     """)
 
+    st.write("""
+    With a random forest score of 0.48 we need to look at nother option, as this
+    is worse than random guessing. So I tried a neural network model.
+    """)
+
     # Display classification report as a DataFrame
     def classification_report_to_df(report):
         report_dict = classification_report(y_test, y_pred_rf, output_dict=True)
@@ -133,8 +138,8 @@ def app():
     """)
     st.write("""
     Neureal networks can detect complex patterns that traditional machine 
-    learning models might miss. Making them very useful if handling larger
-    data sets.
+    learning models might miss. However, they require large amounts of data to 
+    enable them to generalise to unseen data.
     """)
 
     st.write("The NN model is trained with:")
@@ -184,7 +189,7 @@ def app():
         epochs = range(1, len(accuracy_results) + 1)
         fig, ax = plt.subplots()
         ax.plot(epochs, accuracy_results, label='Train Accuracy')
-        ax.plot(epochs, loss_results, label='Validation Accuracy')
+        ax.plot(epochs, loss_results, label='Validation Loss')
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Accuracy")
         ax.set_title("Neural Network Accuracy per Epoch")
@@ -192,5 +197,8 @@ def app():
         st.pyplot(fig)
 
         st.write("""
-        This plot shows...........
+        It's not as accurate as we'd like but its better than the random forest.
+        The main issue here is data set size, to improve the accuracy of the
+        prediction, I would need to add at least double the amount of data.
+                       
         """)

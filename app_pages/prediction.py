@@ -21,6 +21,7 @@ save_path = "./model/"
 # Load the dataset
 file_path = "./jupyter_notebooks/data/full_dataset.csv"
 data = pd.read_csv(file_path)
+df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
 
 normalised_data, label_encoder = myutils.preprocess_data(data)
 normalised_data.head()
@@ -45,7 +46,7 @@ def app():
 
     Teams = ("Arsenal", "Aston Villa", "Bournemouth","Brentford","Brighton",
     "Crystal Palace","Chelsea","Everton","Fulham","Ipswich",
-    "Nottingham Forest","Man City","Man United","Liverpool",
+    "Nott'm Forest","Man City","Man United","Liverpool",
     "Tottenham","Newcastle","Southampton","Wolves","West Ham","Leicester",)
 
     col1, col2, col3 = st.columns([0.2,0.2,0.33]) # To make match selection side by side, instead of stacked
@@ -106,4 +107,23 @@ def app():
     results_df = pd.DataFrame(match_results, columns=["Home Team", "Away Team", "NN Prediction"])
     st.dataframe(results_df)
     
-    st.write('---')  # Separator for readability
+    st.write('---')
+
+    st.header("Request A Bet Predictor/Probability")
+
+    options = st.multiselect(
+        "What metrics would you like to include?",
+        metrics
+    )
+
+    # st.inputbox for team 1 and team2
+    team1 = st.selectbox(
+        "Teams",
+         Teams,
+         key=f"team1"
+    )
+ 
+    fig, ax = myutils.plot_metrics(df, team1, None, options, mapping, ax=None)
+    st.pyplot(fig)
+
+    st.write('---')

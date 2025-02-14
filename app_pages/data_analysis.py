@@ -84,8 +84,6 @@ def app():
         as possible.
         """)
 
-    #st.write(df.describe())
-
     st.header("Correlation Matrix")
 
     st.write("""
