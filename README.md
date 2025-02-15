@@ -1,6 +1,10 @@
+# Bet Predictor Notebook Readme
+
 
 ## Project Overview
 The **Sports Betting Predictor Dashboard** is a Streamlit-based application that leverages predictive analytics to provide betting insights for sports enthusiasts. This dashboard allows users to upload data, perform exploratory analysis, generate predictions for match outcomes, and evaluate model performance.
+
+#### I must stress, due to having to use render to deploy, it can take a while to load the page. (Roughly 3 minutes when I load it)
 
 ---
 
@@ -105,8 +109,6 @@ Develop a robust, easy-to-use dashboard with clear instructions, interactive vis
 
 ---
 
-## Sources
-
 ## Libraries/Dependencies
 
 - **Pandas:**
@@ -129,7 +131,6 @@ Develop a robust, easy-to-use dashboard with clear instructions, interactive vis
   
 - **XGBoost:**
   - A powerful, efficient, and scalable implementation of gradient boosting framework.
-  - Due to its size, it is excluded from the deployed app to avoid increasing slug size but is used during model training and development. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #### Images
 
@@ -172,11 +173,62 @@ Develop a robust, easy-to-use dashboard with clear instructions, interactive vis
 
 ---
 
+##Deploying Your App to Render
+
+Render is a cloud platform that allows you to deploy web apps, static sites, and more with ease. This guide will walk you through the process of deploying your app to Render.
+
+### Prerequisites
+Before you begin, make sure you have:
+
+A Render account. 
+A GitHub or GitLab account with your project repository.
+Your app's dependencies defined (e.g., requirements.txt for Python projects).
+Your app should be compatible with Render's environment (e.g., HTTP web service or background worker).
+  - Step 1: Push Your Project to GitHub/GitLab
+If you haven't already, push your project to a GitHub or GitLab repository.
+Make sure your repository contains all the necessary files for deployment, such as:
+requirements.txt (for Python projects).
+Any other configuration files specific to your app.
+  - Step 2: Create a New Web Service on Render
+Go to Render and log into your account.
+Click on the New button in the upper-left corner of the dashboard and select Web Service.
+Select Connect Account and link your GitHub or GitLab account to Render.
+Once your account is connected, Render will show your repositories. Select the repository you want to deploy.
+Render will ask you to configure the web service. Fill in the details:
+Name: Give your web service a name.
+Environment: Choose your environment (e.g., Python for Python projects).
+Branch: Select the branch you want to deploy (typically main).
+Build Command: The build command to set up the environment (e.g., pip install -r requirements.txt for Python projects).
+Start Command: The command that runs your application (e.g., python app.py or flask run).
+Region: Choose the region closest to your users.
+  - Step 3: Set Up Environment Variables (Optional)
+If your app requires environment variables (like API keys or secrets), you can set them up during deployment:
+In the Environment Variables section of the Render configuration page, click Add Environment Variable.
+Enter the name and value for each environment variable.
+  - Step 4: Deploy Your App
+After filling out the configuration, click Create Web Service.
+Render will start building and deploying your app.
+It will clone your Git repository, install dependencies, and run the build command.
+You can track the progress of the deployment in the Logs section.
+  - Step 5: Verify Your App
+Once the deployment is complete, Render will provide you with a URL to access your app.
+Click on the provided URL to verify that your app is running correctly.
+  - Step 6: Update Your Deployment
+If you make any changes to your code (e.g., bug fixes, new features), push those changes to your Git repository.
+Render will automatically rebuild and redeploy your app whenever changes are pushed to the connected repository.
+
 ## Bugs
 
-- ![features](/images/pyplotfigbug.png)
+Throughout this project I was exposed to many new and more familiar bugs. It would have been impossible for me to track them all. So I will focus on the biggers bugs and problems I encountered.
 
+1 - The first was when creating the myutils.py page. Struggled to incorporate that page with the rest of the app. This was because I failed to import at the top of the page. 
 - ![features](/images/utilsbug.png)
+2 - The second, I managed to get the plots to display in data analysis, but no data was being displayed. My file paths were in the wrong place, located inside the main app function. Organising the datasets better and making sure they were properly indented was key to fixing the issue.
+
+3 - The biggest one i encountered was by far the deployment to heroku. My slug size was way to large and it made it impossible to deploy. Tried everything, pruning, clearing un needed files and folders. The support team at CI on slack pointed me in the direction of Render. This fixed the deployment issue, however i was unable to run the streamlit app.
+- ![features](/images/renderbug.png)
+I would get this error message, The issue here was me following the instructions to literally, and entered the wrong python version when deploying to render.
+
 ---
 
 ## Credits
@@ -187,9 +239,47 @@ This project was made possible by the support and guidance of several key resour
 - **[Streamlit documentation](https://docs.streamlit.io/)**: For guiding the development of the interactive web app.
 - **[Pandas documentation](https://pandas.pydata.org/docs/)**: For guiding the development of the interactive web app.
 - **[XGBoost documentation](https://xgboost.readthedocs.io/)**: For providing resources on the XGBoost machine learning library, which was used for model training and evaluation.
-- **[Heroku documentation](https://devcenter.heroku.com/)**: For deploying the Streamlit app
 - **[Code Institute](https://learn.codeinstitute.net/ci_program/sppredan2024_4)**: Lessons and notebooks on course content essential to progress. 
  
+## Librarys
+
+### Main Data Analysis Libraries:
+
+- **Pandas:**
+  - Used for data manipulation and analysis, especially for handling structured data in DataFrames.
+  - Key functions: handling missing values and generating summary statistics
+  
+- **NumPy:**
+  - Essential for numerical computing in Python, used for efficient data storage and manipulation.
+  - Provides support for large, multi-dimensional arrays and matrices.
+  
+- **Matplotlib:**
+  - A popular library for creating static, interactive, and animated visualizations in Python.
+  - Used primarily for generating plots like scatter plots, histograms, and line graphs in this project.
+
+- **Seaborn:**
+  - A data visualization library based on Matplotlib, providing a high-level interface for drawing attractive and informative statistical graphics.
+  - Used for generating heatmaps and correlation plots to understand relationships between features.
+
+### Main Machine Learning Libraries:
+
+- **Scikit-learn:**
+  - Used for splitting the dataset, preprocessing data, and evaluating machine learning models.
+  
+- **XGBoost:**
+  - A powerful, efficient, and scalable implementation of gradient boosting framework.
+  - Utilized for training the regression model to predict house sale prices.
+
+- **Random Forest:**
+  - Random Forest is an ensemble learning method that can be used for both classification and regression tasks.
+  - Handles both categorical and numerical data, random feature selection & ensemble learning.
+
+### Other Libraries:
+  
+- **Streamlit:**
+  - Used to build the interactive web dashboard for visualizing data, making predictions, and displaying model performance metrics.
+
+These libraries were crucial in building an end-to-end machine learning solution, from data preprocessing to model deployment.
 
 All third-party libraries and frameworks used in the project have been credited in the `requirements.txt`
 
