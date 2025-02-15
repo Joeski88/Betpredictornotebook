@@ -422,7 +422,7 @@ def app():
 
     st.write("Lets take a look at Arsenals 20/21 season, and compare it with last season, 23/24.")
 
-    #st.image("./images/arsecomparison.png")
+    st.image("./images/arsecomparison.png")
 
     st.write("""This shows a quite incredible change in form and results.
             In 20/21 Arsenals stats shown here are low. But they are only 

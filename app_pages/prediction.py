@@ -41,7 +41,11 @@ def app():
 
     st.write("""
     Select Fixtures below, you can get predictions for a whole match week. 
-    
+    """)
+
+    st.write("""
+    On the right is the prediction o f the chosen result, home win, away win and 
+    draw.
     """)
 
     Teams = ("Arsenal", "Aston Villa", "Bournemouth","Brentford","Brighton",
@@ -83,11 +87,9 @@ def app():
                 "",
                 [nn_result],
                 key=f"NN_{i}",
-                #disabled = True
             )
 
         match_results.append([team1, team2, nn_result])
-        #st.write('---') 
 
         # from multiselect
         metrics = ['FTHG', 'FTAG', 'HS', 'HST', 'HC', 'AS', 'AST', 'AC']
@@ -102,14 +104,13 @@ def app():
             'AC': 'Away Corners'
         }
 
-    # Display all match results in a DataFrame below the selections
-    st.subheader(f"Match summary")
-    results_df = pd.DataFrame(match_results, columns=["Home Team", "Away Team", "NN Prediction"])
-    st.dataframe(results_df)
-    
-    st.write('---')
-
     st.header("Request A Bet Predictor/Probability")
+
+    st.write("""
+    Select which metrics your interested in betting on for a specific team. The radar plot
+    will generate a plot of average data from the last 5 years. Allowing you to 
+    get an idea of the kind of numbers to be looking at.
+    """)
 
     options = st.multiselect(
         "What metrics would you like to include?",
@@ -125,5 +126,10 @@ def app():
  
     fig, ax = myutils.plot_metrics(df, team1, None, options, mapping, ax=None)
     st.pyplot(fig)
+
+    st.write("""
+    I struggled to change the key on the radar plot from percentage to numerical.
+    It's essentially the same as 10% = 1 and 100% = 10.
+    """)
 
     st.write('---')
