@@ -349,7 +349,7 @@ def app():
     the away stats are the data of the teams Arsenal and West Ham have faced.
     """)
 
-    #st.image("./images/arswhuradarplot.png")
+    st.image("./images/arswhuradarplot.png")
 
     st.write("""
     From this plot you can see Arsenal are much stronger at home and away than 
