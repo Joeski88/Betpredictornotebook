@@ -13,7 +13,9 @@ from sklearn.preprocessing import LabelEncoder
 import myutils
 
 def app():
-        # Load dataset
+
+    # Load datasets
+
     file_path = "./jupyter_notebooks/data/full_dataset.csv"
 
     df =  pd.read_csv("./jupyter_notebooks/data/full_dataset.csv")
@@ -25,10 +27,6 @@ def app():
     "23-24": pd.read_csv("./jupyter_notebooks/data/23_24.csv"),
     "24-25": pd.read_csv("./jupyter_notebooks/data/24_25.csv")}
 
-    # st.write(df.head())
-    print(df.columns)
-    print("Main dataset columns:", df.columns)
-    print("Loaded dataset keys:", datasets.keys())
     st.title("Hypothesis")
     
     # Hypothesis Section

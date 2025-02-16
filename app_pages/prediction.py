@@ -35,8 +35,6 @@ def app():
 
     st.title("Prediction Hub")
 
-    # st.image("./images/pitch.jpg")
-
     st.subheader("Individual Match Predictior")
 
     st.write("""
@@ -57,7 +55,6 @@ def app():
     match_results = []
     # Loop to create 10 dropdowns for team selections in matches
     for i in range(1, 11):  # For 10 matches
-        #st.subheader(f"Match {i}")
         
         with col1:
         # Select the first team for the match
@@ -109,7 +106,8 @@ def app():
     st.write("""
     Select which metrics your interested in betting on for a specific team. The radar plot
     will generate a plot of average data from the last 5 years. Allowing you to 
-    get an idea of the kind of numbers to be looking at.
+    get an idea of the kind of numbers to be looking at. In a RAB at the bookies, 
+    theres usually a minimum selection of 3 so i would reccomend selecting the same minimum for this.
     """)
 
     options = st.multiselect(
@@ -123,13 +121,14 @@ def app():
          Teams,
          key=f"team1"
     )
- 
+    
+    # radar plot
     fig, ax = myutils.plot_metrics(df, team1, None, options, mapping, ax=None)
     st.pyplot(fig)
 
     st.write("""
     I struggled to change the key on the radar plot from percentage to numerical.
-    It's essentially the same as 10% = 1 and 100% = 10.
+    It's essentially the same as 10% = 1 and 100% = 10. Please wait a couple of seconds between each metric selection.
     """)
 
     st.write('---')

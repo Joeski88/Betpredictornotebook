@@ -34,6 +34,7 @@ def app():
     "22-23": pd.read_csv("./jupyter_notebooks/data/22_23.csv"),
     "23-24": pd.read_csv("./jupyter_notebooks/data/23_24.csv"),
     "24-25": pd.read_csv("./jupyter_notebooks/data/24_25.csv")}
+
     st.title("Data Analysis")
 
     st.header("Data Set Summary")
@@ -196,14 +197,12 @@ def app():
         # Scatter plot with regression line
         sb.regplot(data=df_season, x=x_col, y=y_col, ax=axes[i], scatter_kws={"alpha": 0.5}, line_kws={"color": "red"})
 
-        # Highlight outliers in red
         sb.scatterplot(data=outliers, x=x_col, y=y_col, ax=axes[i], color="red", marker="x", s=100, label="Outliers")
 
-        # Add team labels for outliers
         for _, row in outliers.iterrows():
             axes[i].text(row[x_col], row[y_col], row["HomeTeam"], fontsize=9, ha="right", color="black")
 
-        # Customize plot appearance
+        # plot appearance
         axes[i].set_title(f"{season}: {x_col} vs {y_col} (Outliers Marked)")
         axes[i].set_xlabel(x_col)
         axes[i].set_ylabel(y_col)
@@ -226,10 +225,6 @@ def app():
         corr_matrix_feats = data_feat[numeric_columns].corr()
     else:
         print("⚠️ No numeric columns found for correlation!")
-
-    # Debugging Check
-    print("Numeric columns used for correlation:", numeric_columns)
-    print("Correlation matrix shape:", corr_matrix_feats.shape if 'corr_matrix_feats' in locals() else "N/A")
 
     st.pyplot(fig)
 
@@ -257,18 +252,15 @@ def app():
     teams_to_plot = ['Man United', 'Arsenal', 'Chelsea'] 
 
     filtered_data = myutils.getParallelPlot(data, features_to_analyse, teams_to_plot)
-    print(data)
     # For data plotting
     x = np.arange(len(features_to_analyse))  # X-axis positions for features
 
     # Plot parallel oordinates with Bezier curves
     fig, ax = plt.subplots(figsize=(12, 6)) 
-    print(filtered_data)
     for _, row in filtered_data.iterrows():
         team = row['HomeTeam']
         
         y = row[features_to_analyse].values  # Y-axis values for the features
-        print(team, y)
 
         # Create Bezier curve (smooth line)
         x_smooth = np.linspace(x.min(), x.max(), 300)  # Smooth x-axis
@@ -282,7 +274,7 @@ def app():
         for i in range(len(features_to_analyse)):
             plt.axvline(x=i, color='gray', linestyle='--', linewidth=0.7, alpha=0.7)
 
-        # Customise the plot
+    # Customise the plot
     plt.xticks(ticks=x, labels=features_to_analyse, rotation=90)  # Feature names as x-axis labels
     plt.xlabel('Metrics')
     plt.ylabel('Normalised Values')
@@ -409,9 +401,7 @@ def app():
     if not values:
         st.write("⚠️ No valid statistics found for the selected team. Please try another.")
     else:
-        
-        #fig = myutils.plot_metrics_season(df1_team, team, metrics, mapping)
-        #fig = myutils.plot_metrics(df2_team, team, None, metrics, mapping)
+
         fig, ax = myutils.plot_metrics(df1, team1, None, metrics, mapping)
         fig, ax = myutils.plot_metrics(df2, team1, None, metrics, mapping, ax)
         st.pyplot(fig)

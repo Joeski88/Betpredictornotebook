@@ -76,6 +76,7 @@ def app():
 
     st.write(data.head())
     
+    # plot for win percentage
     st.subheader("Overall Win Percentage Bar Plot")  
     data_org, win_percentage = myutils.calculateOverallPerformance(data)
 

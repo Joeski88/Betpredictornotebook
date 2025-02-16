@@ -54,7 +54,7 @@ def app():
         'HomeTeam', 'AwayTeam', 'HomeGoalsAvg', 'HomeWinPct', 'AwayWinPct',
         'GoalDifference', 'Implied_Prob_A', 'Expected_Goals', 'Market_Expectation'
     ]
-
+    # normalise data
     X = normalised_data[features]
     y = normalised_data['FTR']  # 0=H, 1=D, 2=A
 
@@ -67,6 +67,7 @@ def app():
     X_test_scaled = scaler.transform(X_test)
     joblib.dump(scaler, save_path + 'scaler.pkl')
 
+    # random forest model
     st.subheader("Random Forest Model Training")
     rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
     rf_model.fit(X_train, y_train)
